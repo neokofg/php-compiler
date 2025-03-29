@@ -1,4 +1,9 @@
 <?php
-$var1 = 10;
-$var2 = $var1 + 20;
-echo $var2;
+$var = 1;
+if ($var == 2) {
+    echo "current var is";
+    echo $var;
+    echo "yes";
+} else {
+    echo "no";
+}

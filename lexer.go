@@ -67,7 +67,11 @@ func (l *Lexer) NextToken() Token {
 		return Token{T_SLASH, "/"}
 	case '=':
 		l.next()
-		return Token{T_EQ, "="}
+		if l.peek() == '=' {
+			l.next()
+			return Token{T_EQEQ, "=="}
+		}
+		return Token{T_EQ, "="}	
 	case ';':
 		l.next()
 		return Token{T_SEMI, ";"}
@@ -81,9 +85,45 @@ func (l *Lexer) NextToken() Token {
 		l.next()
 		return Token{T_RPAREN, ")"}
 	case '"':
-		str := l.readWhile(func(r rune) bool { return r != '"' })
-		l.next() // consume closing "
-		return Token{T_STRING, str}
+		l.next()
+		var sb strings.Builder
+		for {
+			ch := l.peek()
+			if ch == '"' || ch == 0 {
+				break
+			}
+			sb.WriteRune(l.next())
+		}
+		l.next()
+		return Token{T_STRING, sb.String()}	
+	case '{':
+		l.next()
+		return Token{T_LBRACE, "{"}
+	case '}':
+		l.next()
+		return Token{T_RBRACE, "}"}	
+	case '>':
+		l.next()
+		return Token{T_GT, ">"}	
+	case '<':
+		l.next()
+		return Token{T_LT, "<"}
+	case '&':
+		l.next()
+		if l.peek() == '&' {
+			l.next()
+			return Token{T_AND, "&&"}
+		} else {
+			return Token{T_EOF, ""}
+		}
+	case '|':
+		l.next()
+		if l.peek() == '|' {
+			l.next()
+			return Token{T_OR, "||"}
+		} else {
+			return Token{T_EOF, ""}
+		}
 	default:
 		if unicode.IsDigit(ch) {
 			val := l.readWhile(unicode.IsDigit)
@@ -97,6 +137,12 @@ func (l *Lexer) NextToken() Token {
 			if val == "echo" {
 				return Token{T_ECHO, val}
 			}
+			if val == "if" {
+				return Token{T_IF, val}
+			}
+			if val == "else" {
+				return Token{T_ELSE, val}
+			}			
 			return Token{T_IDENT, val}
 		}
 

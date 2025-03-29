@@ -17,6 +17,15 @@ const (
 	T_LPAREN
 	T_RPAREN
 	T_ECHO
+	T_IF
+	T_ELSE
+	T_LBRACE
+	T_RBRACE
+	T_GT
+	T_LT
+	T_AND
+	T_OR
+	T_EQEQ
 )
 
 type Token struct {

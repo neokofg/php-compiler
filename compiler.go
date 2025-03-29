@@ -8,15 +8,22 @@ type Constant struct {
 }
 
 const (
-	OP_LOAD_CONST = 0x01
-	OP_PRINT      = 0x02
-	OP_ADD        = 0x03
-	OP_SUB        = 0x04
-	OP_MUL        = 0x05
-	OP_DIV        = 0x06
-	OP_STORE_VAR  = 0x10
-	OP_LOAD_VAR   = 0x11
-	OP_HALT       = 0xFF
+	OP_LOAD_CONST    = 0x01
+	OP_PRINT         = 0x02
+	OP_ADD           = 0x03
+	OP_SUB           = 0x04
+	OP_MUL           = 0x05
+	OP_DIV           = 0x06
+	OP_STORE_VAR     = 0x10
+	OP_LOAD_VAR      = 0x11
+	OP_HALT          = 0xFF
+	OP_JUMP_IF_FALSE = 0x20
+	OP_JUMP          = 0x21
+	OP_GT 			 = 0x07
+	OP_LT  			 = 0x08
+	OP_AND 			 = 0x09
+	OP_OR  			 = 0x0A
+	OP_EQ 			 = 0x0B
 )
 
 
@@ -56,6 +63,35 @@ func CompileStmt(stmt Stmt) {
 		CompileExpr(s.Expr)
 		bytecode = append(bytecode, OP_PRINT)
 
+	case *IfStmt:
+		CompileExpr(s.Cond)
+
+		jumpIfFalsePos := len(bytecode)
+		bytecode = append(bytecode, OP_JUMP_IF_FALSE, 0xFF) // временно
+
+		// THEN блок
+		for _, stmt := range s.Then {
+			CompileStmt(stmt)
+		}
+		endThen := len(bytecode)
+
+		if len(s.Else) > 0 {
+			jumpOverElsePos := len(bytecode)
+			bytecode = append(bytecode, OP_JUMP, 0xFF) // временно
+
+			// ELSE блок
+			for _, stmt := range s.Else {
+				CompileStmt(stmt)
+			}
+			endElse := len(bytecode)
+
+			// правим оффсеты
+			bytecode[jumpIfFalsePos+1] = byte(jumpOverElsePos - jumpIfFalsePos)
+			bytecode[jumpOverElsePos+1] = byte(endElse - (jumpOverElsePos + 2))
+		} else {
+			bytecode[jumpIfFalsePos+1] = byte(endThen - (jumpIfFalsePos + 2))
+		}
+
 	default:
 		panic("неподдерживаемый тип выражения в CompileStmt")
 	}
@@ -87,10 +123,19 @@ func CompileExpr(expr Expr) {
 			bytecode = append(bytecode, OP_MUL)
 		case T_SLASH:
 			bytecode = append(bytecode, OP_DIV)
+		case T_GT:
+			bytecode = append(bytecode, OP_GT)
+		case T_LT:
+			bytecode = append(bytecode, OP_LT)
+		case T_EQEQ:
+			bytecode = append(bytecode, OP_EQ)
+		case T_AND:
+			bytecode = append(bytecode, OP_AND)
+		case T_OR:
+			bytecode = append(bytecode, OP_OR)
 		default:
 			panic("неподдерживаемый оператор в BinaryExpr")
 		}
-
 	default:
 		panic("неподдерживаемое выражение в CompileExpr")
 	}

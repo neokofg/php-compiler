@@ -30,3 +30,9 @@ type AssignStmt struct {
 type EchoStmt struct {
 	Expr Expr
 }
+
+type IfStmt struct {
+	Cond Expr
+	Then []Stmt
+	Else []Stmt
+}

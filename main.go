@@ -36,7 +36,7 @@ func main() {
 			break
 		}
 		tokens = append(tokens, tok)
-	}
+	}	
 
 	parser := NewParser(tokens)
 	stmts := parser.Parse()

@@ -69,7 +69,31 @@ func (p *Parser) parseStatement() Stmt {
 		return &EchoStmt{Expr: expr}
 	}
 
+	if tok.Type == T_IF {
+		p.next()
+		p.expect(T_LPAREN)
+		cond := p.parseExpression()
+		p.expect(T_RPAREN)
+		thenBlock := p.parseBlock()
+		var elseBlock []Stmt
+		if p.peek().Type == T_ELSE {
+			p.next()
+			elseBlock = p.parseBlock()
+		}
+		return &IfStmt{Cond: cond, Then: thenBlock, Else: elseBlock}
+	}	
+
 	panic(fmt.Sprintf("Неожиданный токен в начале строки: %v", tok))
+}
+
+func (p *Parser) parseBlock() []Stmt {
+	p.expect(T_LBRACE)
+	var stmts []Stmt
+	for p.peek().Type != T_RBRACE && p.peek().Type != T_EOF {
+		stmts = append(stmts, p.parseStatement())
+	}
+	p.expect(T_RBRACE)
+	return stmts
 }
 
 // --------------------
@@ -77,7 +101,7 @@ func (p *Parser) parseStatement() Stmt {
 // --------------------
 
 func (p *Parser) parseExpression() Expr {
-	return p.parseAddSub()
+	return p.parseOr()
 }
 
 func (p *Parser) parseAddSub() Expr {
@@ -130,3 +154,47 @@ func (p *Parser) parsePrimary() Expr {
 		panic(fmt.Sprintf("Ожидалось выражение, найден токен: %v", tok))
 	}
 }
+
+func (p *Parser) parseOr() Expr {
+	left := p.parseAnd()
+	for {
+		if p.peek().Type == T_OR {
+			p.next()
+			right := p.parseAnd()
+			left = &BinaryExpr{Left: left, Op: T_OR, Right: right}
+		} else {
+			break
+		}
+	}
+	return left
+}
+
+func (p *Parser) parseAnd() Expr {
+	left := p.parseComparison()
+	for {
+		if p.peek().Type == T_AND {
+			p.next()
+			right := p.parseComparison()
+			left = &BinaryExpr{Left: left, Op: T_AND, Right: right}
+		} else {
+			break
+		}
+	}
+	return left
+}
+
+func (p *Parser) parseComparison() Expr {
+	left := p.parseAddSub()
+	for {
+		op := p.peek()
+		if op.Type == T_GT || op.Type == T_LT || op.Type == T_EQEQ {
+			p.next()
+			right := p.parseAddSub()
+			left = &BinaryExpr{Left: left, Op: op.Type, Right: right}
+		} else {
+			break
+		}
+	}
+	return left
+}
+
