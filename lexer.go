@@ -183,7 +183,11 @@ func (l *Lexer) NextToken() Token {
 				return Token{T_IF, val}
 			case "else":
 				return Token{T_ELSE, val}
-				// TODO: Добавить другие ключевые слова (while, for, function, ...)
+			case "while":
+				return Token{T_WHILE, val}
+			case "for":
+				return Token{T_FOR, val}
+			// TODO: Добавить другие ключевые слова (while, for, function, ...)
 			}		
 			return Token{T_IDENT, val}
 		}

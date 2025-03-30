@@ -1,9 +1,6 @@
 <?php
 $var = 1;
-if ($var == "1") {
-    echo "current var is";
+while (1) {
     echo $var;
-    echo "yes";
-} else {
-    echo "no";
+    $var = $var + 1;
 }

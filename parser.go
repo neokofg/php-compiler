@@ -122,13 +122,86 @@ func (p *Parser) parseStatement() (Stmt, error) {
 			}
 		}
 		return &IfStmt{Cond: cond, Then: thenBlock, Else: elseBlock}, nil
+	case T_WHILE:
+		p.next()
+		_, err := p.expect(T_LPAREN)
+		if err != nil {
+			return nil, err
+		}
 
+		condExpr, err := p.parseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = p.expect(T_RPAREN)
+		if err != nil {
+			return nil, err
+		}
+
+		bodyBlock, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+
+		return &WhileStmt{Cond: condExpr, Body: bodyBlock}, nil
+	case T_FOR:
+		p.next()
+		_, err := p.expect(T_LPAREN)
+		if err != nil {
+			return nil, err
+		}
+	
+		initExpr, err := p.parseOptionalExpression(T_SEMI)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing for-loop initializer: %w", err)
+		}
+		_, err = p.expect(T_SEMI)
+		if err != nil {
+			return nil, err
+		}
+	
+		condExpr, err := p.parseOptionalExpression(T_SEMI)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing for-loop condition: %w", err)
+		}
+		_, err = p.expect(T_SEMI)
+		if err != nil {
+			return nil, err
+		}
+	
+		incrExpr, err := p.parseOptionalExpression(T_RPAREN)
+		if err != nil {
+			return nil, fmt.Errorf("error parsing for-loop increment: %w", err)
+		}
+		_, err = p.expect(T_RPAREN)
+		if err != nil {
+			return nil, err
+		}
+	
+		bodyBlock, err := p.parseBlock()
+		if err != nil {
+			return nil, err
+		}
+	
+		return &ForStmt{Init: initExpr, Cond: condExpr, Incr: incrExpr, Body: bodyBlock}, nil
 	default:
 		if tok.Type == T_ILLEGAL {
 			return nil, fmt.Errorf("Lexer error in position %d: %s", p.pos, tok.Value)
 		}
 		return nil, fmt.Errorf("Position %d: unexpected token in the start of instruction: %v (%q)", p.pos, tok.Type, tok.Value)
 	}
+}
+
+func (p *Parser) parseOptionalExpression(terminator TokenType) (Expr, error) {
+	if p.peek().Type == terminator {
+		return nil, nil
+	}
+	expr, err := p.parseExpression()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to parse optional expression before %v: %w", terminator, err)
+	}
+	return expr, nil
 }
 
 func (p *Parser) parseBlock() ([]Stmt, error) {

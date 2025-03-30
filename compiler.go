@@ -24,6 +24,7 @@ const (
 	OP_AND 			 = 0x09
 	OP_OR  			 = 0x0A
 	OP_EQ 			 = 0x0B
+	OP_POP           = 0x0C
 )
 
 
@@ -114,7 +115,62 @@ func CompileStmt(stmt Stmt) {
 			offsetJumpIfFalse := uint16(afterThen - (jumpIfFalsePos + 3))
 			patchUint16(bytecode, jumpIfFalsePos+1, offsetJumpIfFalse)
 		}
+	case *WhileStmt:
+		loopStartPos := len(bytecode)
 
+		CompileExpr(s.Cond)
+
+		jumpFalsePos := len(bytecode)
+		bytecode = append(bytecode, OP_JUMP_IF_FALSE, 0xFF, 0xFF) // Placeholder
+
+		for _, bodyStmt := range s.Body {
+			CompileStmt(bodyStmt)
+		}
+
+		jumpBackOffset := loopStartPos - (len(bytecode) + 3)
+		bytecode = append(bytecode, OP_JUMP)
+		writeUint16(&bytecode, uint16(int16(jumpBackOffset)))
+
+		loopEndPos := len(bytecode)
+		jumpFalseOffset := uint16(loopEndPos - (jumpFalsePos + 3))
+		patchUint16(bytecode, jumpFalsePos+1, jumpFalseOffset)
+
+	case *ForStmt:
+		if s.Init != nil {
+			CompileExpr(s.Init)
+			bytecode = append(bytecode, OP_POP)
+		}
+
+		conditionStartPos := len(bytecode)
+
+		if s.Cond != nil {
+			CompileExpr(s.Cond)
+		} else {
+			trueConstIdx := addConstant(Constant{Type: "int", Value: "1"})
+			bytecode = append(bytecode, OP_LOAD_CONST, byte(trueConstIdx))
+		}
+
+		jumpFalsePos := len(bytecode)
+		bytecode = append(bytecode, OP_JUMP_IF_FALSE, 0xFF, 0xFF) // Placeholder
+
+		for _, bodyStmt := range s.Body {
+			CompileStmt(bodyStmt)
+		}
+
+		incrementStartPos := len(bytecode)
+		_ = incrementStartPos
+		if s.Incr != nil {
+			CompileExpr(s.Incr)
+			bytecode = append(bytecode, OP_POP)
+		}
+
+		jumpBackOffset := conditionStartPos - (len(bytecode) + 3)
+		bytecode = append(bytecode, OP_JUMP)
+		writeUint16(&bytecode, uint16(int16(jumpBackOffset)))
+
+		loopEndPos := len(bytecode)
+		jumpFalseOffset := uint16(loopEndPos - (jumpFalsePos + 3))
+		patchUint16(bytecode, jumpFalsePos+1, jumpFalseOffset)
 	default:
 		panic(fmt.Sprintf("Unsupported type of statement: %T", stmt))
 	}

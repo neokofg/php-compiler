@@ -27,6 +27,8 @@ const (
 	T_OR
 	T_EQEQ
 	T_ILLEGAL
+	T_WHILE
+	T_FOR
 )
 
 type Token struct {

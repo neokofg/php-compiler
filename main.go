@@ -66,7 +66,7 @@ func main() {
 	}
 	defer f.Close()
 	defer os.Remove(tmpFile)
-
+	
 	_, err = f.WriteString("#include <stdint.h>\n")
 	if err != nil {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))

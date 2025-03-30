@@ -36,3 +36,15 @@ type IfStmt struct {
 	Then []Stmt
 	Else []Stmt
 }
+
+type WhileStmt struct {
+	Cond Expr
+	Body []Stmt
+}
+
+type ForStmt struct {
+	Init Expr
+	Cond Expr
+	Incr Expr
+	Body []Stmt
+}
