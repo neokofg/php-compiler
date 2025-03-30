@@ -9,7 +9,7 @@ Ultimate goal of this project is to be able to compile an entire Laravel applica
 
 ## 🧭 Roadmap for PHP Compiler (phpc)
 
-> Core idea: Compile PHP source code into bytecode and execute it via a custom C-based VM.
+> Core idea: Compile PHP source code into IR bytecode and execute it via a custom C-based VM.
 
 ---
 
