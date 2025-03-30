@@ -152,7 +152,7 @@ func main() {
 	if outFile != "" {
 		target = outFile
 	}
-	cmd := exec.Command("gcc", "-DCOMPILE_AS_EXECUTABLE", "-I../phpc-vm", "-o", target, tmpFile, "../phpc-vm/vm.c")
+	cmd := exec.Command("gcc", "-DCOMPILE_AS_EXECUTABLE", "-I../phpc-vm", "-o", target, tmpFile, "vm/vm.c")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	fmt.Printf("Compiling C with command: %s\n", cmd.String())
