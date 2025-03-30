@@ -36,6 +36,10 @@ func main() {
 	var tokens []Token
 	for {
 		tok := lexer.NextToken()
+		if tok.Type == T_ILLEGAL {
+			fmt.Fprintf(os.Stderr, "Lexer analyze error: %s\n", tok.Value)
+			os.Exit(1)
+		}
 		if tok.Type == T_EOF {
 			break
 		}
@@ -43,7 +47,11 @@ func main() {
 	}	
 
 	parser := NewParser(tokens)
-	stmts := parser.Parse()
+	stmts, err := parser.Parse()
+    if err != nil {
+        fmt.Fprintf(os.Stderr, "Syntax analyze error: %v\n", err)
+        os.Exit(1)
+    }
 
 	for _, stmt := range stmts {
 		CompileStmt(stmt)
@@ -117,7 +125,7 @@ func main() {
 		} else {
 			num, errAtoi := strconv.Atoi(c.Value)
 			if errAtoi != nil {
-				panic(fmt.Sprintf("Critical error: Cannot convert const '%s' to integer: %v", c.Value, errAtoi))				num = 0
+				panic(fmt.Sprintf("Critical error: Cannot convert const '%s' to integer: %v", c.Value, errAtoi))
 			}
 			_, err = f.WriteString(fmt.Sprintf("    {.type = TYPE_INT, .value.int_val = %d},\n", num))
 			if err != nil {
@@ -130,6 +138,10 @@ func main() {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
 	}
 
+	_, err = f.WriteString(fmt.Sprintf("\nsize_t constants_len = %d;\n\n", len(constants)))
+    if err != nil {
+        panic(fmt.Sprintf("Error writing constants_len in %s: %v", tmpFile, err))
+    }
 
 	err = f.Close()
 	if err != nil {
