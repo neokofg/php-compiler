@@ -1,4 +1,4 @@
-# It's still PHP. It just compiles. It's just async. It's just fast.
+## It's still PHP. It just compiles. It's just async. It's just fast.
 
 ### Hello everyone!
 
