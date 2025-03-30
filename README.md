@@ -2,10 +2,8 @@
 
 ### Hello everyone!
 
-This is my first compiler project. I'm trying to compile my favorite interpreted language — PHP — into native code!  
-My ultimate goal is to be able to compile an entire Laravel application.  
-It's a huge challenge, but I’m excited to learn and build along the way.  
-Hope I can make it happen — and you're welcome to follow the journey!
+This is php compiler project. This project tries to compile interpreted language — PHP — into native code.
+Ultimate goal of this project is to be able to compile an entire Laravel application.
 
 ---
 
@@ -60,6 +58,7 @@ Hope I can make it happen — and you're welcome to follow the journey!
 - [ ] `this` keyword
 - [ ] Inheritance and interfaces
 - [ ] Traits
+- [ ] Private classes
 
 ---
 
@@ -67,10 +66,12 @@ Hope I can make it happen — and you're welcome to follow the journey!
 - [ ] Add native C implementations for core functions (`strlen`, `isset`, etc.)
 - [ ] Bridge between compiled PHP and C-implemented internals
 - [ ] Add support for include/require
+- [ ] Async runtime
+- [ ] Multithreaded runtime
 
 ---
 
-### ⚙️ Phase 7: Laravel readiness
+### ⚙️ Phase 7: Overall PHP support
 - [ ] Namespace support (`use`, `namespace`)
 - [ ] Composer-style autoloading
 - [ ] Exception handling (`try/catch`)
