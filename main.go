@@ -161,7 +161,6 @@ func main() {
 		fmt.Println("VM compilation error, please report this error to repository owners")
 		return
 	}
-
 	if outFile == "" {
 		fmt.Println("--- Starting VM ---")
 		execCmd := exec.Command("./" + target)

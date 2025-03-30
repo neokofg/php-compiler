@@ -1,3 +1,5 @@
+# It's still PHP. It just compiles. It's just async. It's just fast.
+
 ### Hello everyone!
 
 This is my first compiler project. I'm trying to compile my favorite interpreted language — PHP — into native code!  
