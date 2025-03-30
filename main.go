@@ -117,8 +117,7 @@ func main() {
 		} else {
 			num, errAtoi := strconv.Atoi(c.Value)
 			if errAtoi != nil {
-				fmt.Printf("Warning: Cannot convert string '%s' to int: %v. Using 0.\n", c.Value, errAtoi)
-				num = 0
+				panic(fmt.Sprintf("Critical error: Cannot convert const '%s' to integer: %v", c.Value, errAtoi))				num = 0
 			}
 			_, err = f.WriteString(fmt.Sprintf("    {.type = TYPE_INT, .value.int_val = %d},\n", num))
 			if err != nil {
