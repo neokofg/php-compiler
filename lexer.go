@@ -3,6 +3,7 @@ package main
 import (
 	"strings"
 	"unicode"
+	"fmt"
 )
 
 type Lexer struct {
@@ -30,6 +31,13 @@ func (l *Lexer) peek() rune {
 	return l.input[l.pos]
 }
 
+func (l *Lexer) peekNext() rune {
+	if l.pos+1 >= len(l.input) {
+		return 0
+	}
+	return l.input[l.pos+1]
+}
+
 func (l *Lexer) skipWhitespace() {
 	for unicode.IsSpace(l.peek()) {
 		l.next()
@@ -37,11 +45,11 @@ func (l *Lexer) skipWhitespace() {
 }
 
 func (l *Lexer) readWhile(cond func(rune) bool) string {
-	var sb strings.Builder
+	start := l.pos
 	for cond(l.peek()) {
-		sb.WriteRune(l.next())
+		l.next()
 	}
-	return sb.String()
+	return string(l.input[start:l.pos])
 }
 
 func (l *Lexer) NextToken() Token {
@@ -49,7 +57,7 @@ func (l *Lexer) NextToken() Token {
 
 	ch := l.peek()
 	if ch == 0 {
-		return Token{T_EOF, ""}
+		return Token{Type: T_EOF, Value: ""}
 	}
 
 	switch ch {
@@ -64,6 +72,7 @@ func (l *Lexer) NextToken() Token {
 		return Token{T_STAR, "*"}
 	case '/':
 		l.next()
+		// TODO: Добавить обработку комментариев // и /* */ ?
 		return Token{T_SLASH, "/"}
 	case '=':
 		l.next()
@@ -84,18 +93,6 @@ func (l *Lexer) NextToken() Token {
 	case ')':
 		l.next()
 		return Token{T_RPAREN, ")"}
-	case '"':
-		l.next()
-		var sb strings.Builder
-		for {
-			ch := l.peek()
-			if ch == '"' || ch == 0 {
-				break
-			}
-			sb.WriteRune(l.next())
-		}
-		l.next()
-		return Token{T_STRING, sb.String()}	
 	case '{':
 		l.next()
 		return Token{T_LBRACE, "{"}
@@ -104,9 +101,11 @@ func (l *Lexer) NextToken() Token {
 		return Token{T_RBRACE, "}"}	
 	case '>':
 		l.next()
+		// TODO: Добавить >= ?
 		return Token{T_GT, ">"}	
 	case '<':
 		l.next()
+		// TODO: Добавить <= ?
 		return Token{T_LT, "<"}
 	case '&':
 		l.next()
@@ -114,7 +113,7 @@ func (l *Lexer) NextToken() Token {
 			l.next()
 			return Token{T_AND, "&&"}
 		} else {
-			return Token{T_EOF, ""}
+			return Token{T_ILLEGAL, "&"}
 		}
 	case '|':
 		l.next()
@@ -122,37 +121,75 @@ func (l *Lexer) NextToken() Token {
 			l.next()
 			return Token{T_OR, "||"}
 		} else {
-			return Token{T_EOF, ""}
+			return Token{T_ILLEGAL, "|"}
 		}
+		case '"': // FIX: Улучшенная обработка строк с экранированием
+		l.next() // съели открывающую "
+		var sb strings.Builder
+		startPos := l.pos
+		for {
+			ch := l.peek()
+			if ch == '"' {
+				l.next()
+				break
+			}
+			if ch == 0 {
+				l.pos = startPos
+				return Token{T_ILLEGAL, "Unexpected end of string"}
+			}
+			if ch == '\\' {
+				l.next()
+				nextCh := l.peek()
+				switch nextCh {
+				case 'n':
+					sb.WriteRune('\n')
+					l.next()
+				case 't':
+					sb.WriteRune('\t')
+					l.next()
+				case 'r':
+					sb.WriteRune('\r')
+					l.next()
+				case '"':
+					sb.WriteRune('"')
+					l.next()
+				case '\\':
+					sb.WriteRune('\\')
+					l.next()
+				default:
+					sb.WriteRune('\\')
+					sb.WriteRune(l.next())
+				}
+			} else {
+				sb.WriteRune(l.next())
+			}
+		}
+		return Token{T_STRING, sb.String()}
 	default:
 		if unicode.IsDigit(ch) {
+			// TODO: Добавить поддержку float?
 			val := l.readWhile(unicode.IsDigit)
 			return Token{T_NUMBER, val}
 		}
 	
-		if unicode.IsLetter(ch) {
+		if unicode.IsLetter(ch) || ch == '_' {
 			val := l.readWhile(func(r rune) bool {
 				return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_'
 			})
-			if val == "echo" {
+			switch val {
+			case "echo":
 				return Token{T_ECHO, val}
-			}
-			if val == "if" {
+			case "if":
 				return Token{T_IF, val}
-			}
-			if val == "else" {
+			case "else":
 				return Token{T_ELSE, val}
-			}			
+				// TODO: Добавить другие ключевые слова (while, for, function, ...)
+			}		
 			return Token{T_IDENT, val}
 		}
 
-		if ch == '"' {
-			l.next()
-			val := l.readWhile(func(r rune) bool { return r != '"' })
-			l.next()
-			return Token{T_STRING, val}
-		}
+		charStr := string(ch)
 		l.next()
-		return Token{T_EOF, ""}
+		return Token{T_ILLEGAL, fmt.Sprintf("Undefined symbol: '%s'", charStr)}
 	}
 }

@@ -12,7 +12,7 @@ import (
 
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println("Использование: phpxc файл.php [--out имя]")
+		fmt.Println("Usage: phpc file.php [--out name]")
 		return
 	}
 	outFile := ""
@@ -20,7 +20,11 @@ func main() {
 		outFile = os.Args[3]
 	}
 	
-	data, _ := os.ReadFile(os.Args[1])
+	data, err := os.ReadFile(os.Args[1])
+	if err != nil {
+		fmt.Printf("File reading error %s: %v\n", os.Args[1], err)
+		return
+	}
 	source := string(data)
 
 	if strings.HasPrefix(source, "<?php") {
@@ -50,35 +54,88 @@ func main() {
 	tmpFile := "vm_exec_temp.c"
 	f, err := os.Create(tmpFile)
 	if err != nil {
-		panic(err)
+		panic(fmt.Sprintf("Cannot create temp c file %s: %v", tmpFile, err))
 	}
-	defer os.Remove(tmpFile)
 	defer f.Close()
-	f.WriteString("#include <stdint.h>\n")
-	f.WriteString("#include <stddef.h>\n")
-	f.WriteString("#include \"vm.h\"\n\n")
+	defer os.Remove(tmpFile)
 
-	f.WriteString("uint8_t bytecode[] = {\n")
+	_, err = f.WriteString("#include <stdint.h>\n")
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
+	_, err = f.WriteString("#include <stddef.h>\n")
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
+	_, err = f.WriteString("#include \"vm.h\"\n\n")
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
+
+	_, err = f.WriteString("uint8_t bytecode[] = {\n    ")
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
 	for i, b := range bytecode {
-		f.WriteString(fmt.Sprintf("0x%02X", b))
+		_, err = f.WriteString(fmt.Sprintf("0x%02X", b))
+		if err != nil {
+			panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+		}
 		if i != len(bytecode)-1 {
-			f.WriteString(", ")
+			_, err = f.WriteString(", ")
+			if err != nil {
+				panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+			}
+			if (i+1)%16 == 0 {
+				_, err = f.WriteString("\n    ")
+				if err != nil {
+					panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+				}
+			}
 		}
 	}
-	f.WriteString("\n};\n")
+	_, err = f.WriteString("\n};\n")
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
 
-	f.WriteString(fmt.Sprintf("\nsize_t bytecode_len = %d;\n\n", len(bytecode)))
+	_, err = f.WriteString(fmt.Sprintf("\nsize_t bytecode_len = %d;\n\n", len(bytecode)))
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
 
-	f.WriteString("Value constants[] = {\n")
+	_, err = f.WriteString("Value constants[] = {\n")
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
 	for _, c := range constants {
 		if c.Type == "string" {
-			f.WriteString(fmt.Sprintf("    {.type = TYPE_STRING, .value.str_val = \"%s\"},\n", c.Value))
+			_, err = f.WriteString(fmt.Sprintf("    {.type = TYPE_STRING, .value.str_val = %s},\n", strconv.Quote(c.Value)))
+			if err != nil {
+				panic(fmt.Sprintf("Error writing string in %s: %v", tmpFile, err))
+			}
 		} else {
-			num, _ := strconv.Atoi(c.Value)
-			f.WriteString(fmt.Sprintf("    {.type = TYPE_INT, .value.int_val = %d},\n", num))
+			num, errAtoi := strconv.Atoi(c.Value)
+			if errAtoi != nil {
+				fmt.Printf("Warning: Cannot convert string '%s' to int: %v. Using 0.\n", c.Value, errAtoi)
+				num = 0
+			}
+			_, err = f.WriteString(fmt.Sprintf("    {.type = TYPE_INT, .value.int_val = %d},\n", num))
+			if err != nil {
+				panic(fmt.Sprintf("Error writing int in %s: %v", tmpFile, err))
+			}
 		}
 	}
-	f.WriteString("};\n")
+	_, err = f.WriteString("};\n")
+	if err != nil {
+		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	}
+
+
+	err = f.Close()
+	if err != nil {
+		panic(fmt.Sprintf("Error closing file %s: %v", tmpFile, err))
+	}
 
 	target := "vm_exec"
 	if outFile != "" {
@@ -87,17 +144,23 @@ func main() {
 	cmd := exec.Command("gcc", "-DCOMPILE_AS_EXECUTABLE", "-I../phpc-vm", "-o", target, tmpFile, "../phpc-vm/vm.c")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
+	fmt.Printf("Compiling C with command: %s\n", cmd.String())
 	err = cmd.Run()
 	if err != nil {
-		fmt.Println("Ошибка компиляции VM")
+		fmt.Println("VM compilation error, please report this error to repository owners")
 		return
 	}
 
 	if outFile == "" {
+		fmt.Println("--- Starting VM ---")
 		execCmd := exec.Command("./" + target)
 		execCmd.Stdout = os.Stdout
 		execCmd.Stderr = os.Stderr
-		execCmd.Run()
+		runErr := execCmd.Run()
+		if runErr != nil {
+			fmt.Println("VM runtime error, please report this error to repository owners:", runErr)
+		}
+		fmt.Println("--- Ending VM ---")
 		os.Remove(target)
 	}
 }

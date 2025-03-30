@@ -26,6 +26,7 @@ const (
 	T_AND
 	T_OR
 	T_EQEQ
+	T_ILLEGAL
 )
 
 type Token struct {
