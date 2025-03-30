@@ -1,6 +1,11 @@
-package main
+package token
 
 type TokenType int
+
+type Token struct {
+	Type  TokenType
+	Value string
+}
 
 const (
 	T_EOF TokenType = iota
@@ -30,8 +35,3 @@ const (
 	T_WHILE
 	T_FOR
 )
-
-type Token struct {
-	Type  TokenType
-	Value string
-}

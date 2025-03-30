@@ -1,35 +1,37 @@
-package main
+package parser
 
 import (
 	"fmt"
 	"strconv"
+	"github.com/neokofg/php-compiler/internal/token"
+	"github.com/neokofg/php-compiler/internal/ast"
 )
 
 type Parser struct {
-	tokens []Token
+	tokens []token.Token
 	pos    int
 }
 
-func NewParser(tokens []Token) *Parser {
+func NewParser(tokens []token.Token) *Parser {
 	return &Parser{tokens: tokens}
 }
 
-func (p *Parser) peek() Token {
+func (p *Parser) peek() token.Token {
 	if p.pos >= len(p.tokens) {
-		return Token{Type: T_EOF, Value: ""}
+		return token.Token{Type: token.T_EOF, Value: ""}
 	}
 	return p.tokens[p.pos]
 }
 
-func (p *Parser) next() Token {
+func (p *Parser) next() token.Token {
 	tok := p.peek()
-	if tok.Type != T_EOF {
+	if tok.Type != token.T_EOF {
 		p.pos++
 	}
 	return tok
 }
 
-func (p *Parser) match(t TokenType) bool {
+func (p *Parser) match(t token.TokenType) bool {
 	if p.peek().Type == t {
 		p.next()
 		return true
@@ -37,16 +39,16 @@ func (p *Parser) match(t TokenType) bool {
 	return false
 }
 
-func (p *Parser) expect(t TokenType) (Token, error) {
+func (p *Parser) expect(t token.TokenType) (token.Token, error) {
 	if p.peek().Type == t {
 		return p.next(), nil
 	}
-	return Token{}, fmt.Errorf("Position %d: expected token %v, but found %v (%q)", p.pos, t, p.peek().Type, p.peek().Value)
+	return token.Token{}, fmt.Errorf("Position %d: expected token %v, but found %v (%q)", p.pos, t, p.peek().Type, p.peek().Value)
 }
 
-func (p *Parser) Parse() ([]Stmt, error) {
-	var stmts []Stmt
-	for p.peek().Type != T_EOF {
+func (p *Parser) Parse() ([]ast.Stmt, error) {
+	var stmts []ast.Stmt
+	for p.peek().Type != token.T_EOF {
 		stmt, err := p.parseStatement()
 		if err != nil {
 			return nil, err
@@ -58,17 +60,17 @@ func (p *Parser) Parse() ([]Stmt, error) {
 	return stmts, nil
 }
 
-func (p *Parser) parseStatement() (Stmt, error) {
+func (p *Parser) parseStatement() (ast.Stmt, error) {
 	tok := p.peek()
 
 	switch tok.Type {
-	case T_DOLLAR:
+	case token.T_DOLLAR:
 		p.next() // $
-		identToken, err := p.expect(T_IDENT)
+		identToken, err := p.expect(token.T_IDENT)
 		if err != nil {
 			return nil, err
 		}
-		_, err = p.expect(T_EQ)
+		_, err = p.expect(token.T_EQ)
 		if err != nil {
 			return nil, err
 		}
@@ -76,27 +78,27 @@ func (p *Parser) parseStatement() (Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, err = p.expect(T_SEMI)
+		_, err = p.expect(token.T_SEMI)
 		if err != nil {
 			return nil, err
 		}
-		return &AssignStmt{Name: identToken.Value, Expr: expr}, nil
+		return &ast.AssignStmt{Name: identToken.Value, Expr: expr}, nil
 
-	case T_ECHO:
+	case token.T_ECHO:
 		p.next()
 		expr, err := p.parseExpression()
 		if err != nil {
 			return nil, err
 		}
-		_, err = p.expect(T_SEMI)
+		_, err = p.expect(token.T_SEMI)
 		if err != nil {
 			return nil, err
 		}
-		return &EchoStmt{Expr: expr}, nil
+		return &ast.EchoStmt{Expr: expr}, nil
 
-	case T_IF:
+	case token.T_IF:
 		p.next()
-		_, err := p.expect(T_LPAREN)
+		_, err := p.expect(token.T_LPAREN)
 		if err != nil {
 			return nil, err
 		}
@@ -104,7 +106,7 @@ func (p *Parser) parseStatement() (Stmt, error) {
 		if err != nil {
 			return nil, err
 		}
-		_, err = p.expect(T_RPAREN)
+		_, err = p.expect(token.T_RPAREN)
 		if err != nil {
 			return nil, err
 		}
@@ -113,18 +115,18 @@ func (p *Parser) parseStatement() (Stmt, error) {
 			return nil, err
 		}
 
-		var elseBlock []Stmt
-		if p.peek().Type == T_ELSE {
+		var elseBlock []ast.Stmt
+		if p.peek().Type == token.T_ELSE {
 			p.next()
 			elseBlock, err = p.parseBlock()
 			if err != nil {
 				return nil, err
 			}
 		}
-		return &IfStmt{Cond: cond, Then: thenBlock, Else: elseBlock}, nil
-	case T_WHILE:
+		return &ast.IfStmt{Cond: cond, Then: thenBlock, Else: elseBlock}, nil
+	case token.T_WHILE:
 		p.next()
-		_, err := p.expect(T_LPAREN)
+		_, err := p.expect(token.T_LPAREN)
 		if err != nil {
 			return nil, err
 		}
@@ -134,7 +136,7 @@ func (p *Parser) parseStatement() (Stmt, error) {
 			return nil, err
 		}
 
-		_, err = p.expect(T_RPAREN)
+		_, err = p.expect(token.T_RPAREN)
 		if err != nil {
 			return nil, err
 		}
@@ -144,37 +146,37 @@ func (p *Parser) parseStatement() (Stmt, error) {
 			return nil, err
 		}
 
-		return &WhileStmt{Cond: condExpr, Body: bodyBlock}, nil
-	case T_FOR:
+		return &ast.WhileStmt{Cond: condExpr, Body: bodyBlock}, nil
+	case token.T_FOR:
 		p.next()
-		_, err := p.expect(T_LPAREN)
+		_, err := p.expect(token.T_LPAREN)
 		if err != nil {
 			return nil, err
 		}
 	
-		initExpr, err := p.parseOptionalExpression(T_SEMI)
+		initExpr, err := p.parseOptionalExpression(token.T_SEMI)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing for-loop initializer: %w", err)
 		}
-		_, err = p.expect(T_SEMI)
+		_, err = p.expect(token.T_SEMI)
 		if err != nil {
 			return nil, err
 		}
 	
-		condExpr, err := p.parseOptionalExpression(T_SEMI)
+		condExpr, err := p.parseOptionalExpression(token.T_SEMI)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing for-loop condition: %w", err)
 		}
-		_, err = p.expect(T_SEMI)
+		_, err = p.expect(token.T_SEMI)
 		if err != nil {
 			return nil, err
 		}
 	
-		incrExpr, err := p.parseOptionalExpression(T_RPAREN)
+		incrExpr, err := p.parseOptionalExpression(token.T_RPAREN)
 		if err != nil {
 			return nil, fmt.Errorf("error parsing for-loop increment: %w", err)
 		}
-		_, err = p.expect(T_RPAREN)
+		_, err = p.expect(token.T_RPAREN)
 		if err != nil {
 			return nil, err
 		}
@@ -184,16 +186,16 @@ func (p *Parser) parseStatement() (Stmt, error) {
 			return nil, err
 		}
 	
-		return &ForStmt{Init: initExpr, Cond: condExpr, Incr: incrExpr, Body: bodyBlock}, nil
+		return &ast.ForStmt{Init: initExpr, Cond: condExpr, Incr: incrExpr, Body: bodyBlock}, nil
 	default:
-		if tok.Type == T_ILLEGAL {
+		if tok.Type == token.T_ILLEGAL {
 			return nil, fmt.Errorf("Lexer error in position %d: %s", p.pos, tok.Value)
 		}
 		return nil, fmt.Errorf("Position %d: unexpected token in the start of instruction: %v (%q)", p.pos, tok.Type, tok.Value)
 	}
 }
 
-func (p *Parser) parseOptionalExpression(terminator TokenType) (Expr, error) {
+func (p *Parser) parseOptionalExpression(terminator token.TokenType) (ast.Expr, error) {
 	if p.peek().Type == terminator {
 		return nil, nil
 	}
@@ -204,20 +206,20 @@ func (p *Parser) parseOptionalExpression(terminator TokenType) (Expr, error) {
 	return expr, nil
 }
 
-func (p *Parser) parseBlock() ([]Stmt, error) {
-	_, err := p.expect(T_LBRACE)
+func (p *Parser) parseBlock() ([]ast.Stmt, error) {
+	_, err := p.expect(token.T_LBRACE)
 	if err != nil {
 		return nil, err
 	}
-	var stmts []Stmt
-	for p.peek().Type != T_RBRACE && p.peek().Type != T_EOF {
+	var stmts []ast.Stmt
+	for p.peek().Type != token.T_RBRACE && p.peek().Type != token.T_EOF {
 		stmt, err := p.parseStatement()
 		if err != nil {
 			return nil, err
 		}
 		stmts = append(stmts, stmt)
 	}
-	_, err = p.expect(T_RBRACE)
+	_, err = p.expect(token.T_RBRACE)
 	if err != nil {
 		return nil, err
 	}
@@ -226,123 +228,123 @@ func (p *Parser) parseBlock() ([]Stmt, error) {
 
 // --- Expressions ---
 
-func (p *Parser) parseExpression() (Expr, error) {
+func (p *Parser) parseExpression() (ast.Expr, error) {
 	return p.parseOr()
 }
 
-func (p *Parser) parseOr() (Expr, error) {
+func (p *Parser) parseOr() (ast.Expr, error) {
 	left, err := p.parseAnd()
 	if err != nil {
 		return nil, err
 	}
-	for p.peek().Type == T_OR {
+	for p.peek().Type == token.T_OR {
 		opTok := p.next()
 		right, err := p.parseAnd()
 		if err != nil {
 			return nil, err
 		}
-		left = &BinaryExpr{Left: left, Op: opTok.Type, Right: right}
+		left = &ast.BinaryExpr{Left: left, Op: opTok.Type, Right: right}
 	}
 	return left, nil
 }
 
-func (p *Parser) parseAnd() (Expr, error) {
+func (p *Parser) parseAnd() (ast.Expr, error) {
 	left, err := p.parseComparison()
 	if err != nil {
 		return nil, err
 	}
-	for p.peek().Type == T_AND {
+	for p.peek().Type == token.T_AND {
 		opTok := p.next()
 		right, err := p.parseComparison()
 		if err != nil {
 			return nil, err
 		}
-		left = &BinaryExpr{Left: left, Op: opTok.Type, Right: right}
+		left = &ast.BinaryExpr{Left: left, Op: opTok.Type, Right: right}
 	}
 	return left, nil
 }
 
-func (p *Parser) parseComparison() (Expr, error) {
+func (p *Parser) parseComparison() (ast.Expr, error) {
 	left, err := p.parseAddSub()
 	if err != nil {
 		return nil, err
 	}
-	for p.peek().Type == T_GT || p.peek().Type == T_LT || p.peek().Type == T_EQEQ {
+	for p.peek().Type == token.T_GT || p.peek().Type == token.T_LT || p.peek().Type == token.T_EQEQ {
 		opTok := p.next()
 		right, err := p.parseAddSub()
 		if err != nil {
 			return nil, err
 		}
-		left = &BinaryExpr{Left: left, Op: opTok.Type, Right: right}
+		left = &ast.BinaryExpr{Left: left, Op: opTok.Type, Right: right}
 	}
 	return left, nil
 }
 
-func (p *Parser) parseAddSub() (Expr, error) {
+func (p *Parser) parseAddSub() (ast.Expr, error) {
 	left, err := p.parseMulDiv()
 	if err != nil {
 		return nil, err
 	}
-	for p.peek().Type == T_PLUS || p.peek().Type == T_MINUS {
+	for p.peek().Type == token.T_PLUS || p.peek().Type == token.T_MINUS {
 		opTok := p.next()
 		right, err := p.parseMulDiv()
 		if err != nil {
 			return nil, err
 		}
-		left = &BinaryExpr{Left: left, Op: opTok.Type, Right: right}
+		left = &ast.BinaryExpr{Left: left, Op: opTok.Type, Right: right}
 	}
 	return left, nil
 }
 
-func (p *Parser) parseMulDiv() (Expr, error) {
+func (p *Parser) parseMulDiv() (ast.Expr, error) {
 	left, err := p.parsePrimary()
 	if err != nil {
 		return nil, err
 	}
-	for p.peek().Type == T_STAR || p.peek().Type == T_SLASH {
+	for p.peek().Type == token.T_STAR || p.peek().Type == token.T_SLASH {
 		opTok := p.next()
 		right, err := p.parsePrimary()
 		if err != nil {
 			return nil, err
 		}
-		left = &BinaryExpr{Left: left, Op: opTok.Type, Right: right}
+		left = &ast.BinaryExpr{Left: left, Op: opTok.Type, Right: right}
 	}
 	return left, nil
 }
 
-func (p *Parser) parsePrimary() (Expr, error) {
+func (p *Parser) parsePrimary() (ast.Expr, error) {
 	tok := p.peek()
 
 	switch tok.Type {
-	case T_NUMBER:
+	case token.T_NUMBER:
 		p.next()
 		val, err := strconv.Atoi(tok.Value)
 		if err != nil {
 			return nil, fmt.Errorf("Position %d: wrong number format: %s", p.pos-1, tok.Value)
 		}
-		return &NumberLiteral{Value: val}, nil
-	case T_STRING:
+		return &ast.NumberLiteral{Value: val}, nil
+	case token.T_STRING:
 		p.next()
-		return &StringLiteral{Value: tok.Value}, nil
-	case T_DOLLAR:
+		return &ast.StringLiteral{Value: tok.Value}, nil
+	case token.T_DOLLAR:
 		p.next()
-		identToken, err := p.expect(T_IDENT)
+		identToken, err := p.expect(token.T_IDENT)
 		if err != nil {
 			return nil, err
 		}
-		return &VarExpr{Name: identToken.Value}, nil
-	case T_LPAREN:
+		return &ast.VarExpr{Name: identToken.Value}, nil
+	case token.T_LPAREN:
 		p.next()
 		expr, err := p.parseExpression()
 		if err != nil {
 			return nil, err
 		}
-		_, err = p.expect(T_RPAREN)
+		_, err = p.expect(token.T_RPAREN)
 		if err != nil {
 			return nil, err
 		}
 		return expr, nil
-	case T_ILLEGAL:
+	case token.T_ILLEGAL:
 		p.next()
 		return nil, fmt.Errorf("Lexer error in position %d: %s", p.pos-1, tok.Value)
 	default:

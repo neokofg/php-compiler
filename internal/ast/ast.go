@@ -1,4 +1,8 @@
-package main
+package ast
+
+import (
+	"github.com/neokofg/php-compiler/internal/token"
+)
 
 type Expr interface{}
 
@@ -16,7 +20,7 @@ type VarExpr struct {
 
 type BinaryExpr struct {
 	Left  Expr
-	Op    TokenType
+	Op    token.TokenType
 	Right Expr
 }
 

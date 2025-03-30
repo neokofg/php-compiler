@@ -1,9 +1,10 @@
-package main
+package lexer
 
 import (
 	"strings"
 	"unicode"
 	"fmt"
+	"github.com/neokofg/php-compiler/internal/token"
 )
 
 type Lexer struct {
@@ -52,76 +53,76 @@ func (l *Lexer) readWhile(cond func(rune) bool) string {
 	return string(l.input[start:l.pos])
 }
 
-func (l *Lexer) NextToken() Token {
+func (l *Lexer) NextToken() token.Token {
 	l.skipWhitespace()
 
 	ch := l.peek()
 	if ch == 0 {
-		return Token{Type: T_EOF, Value: ""}
+		return token.Token{Type: token.T_EOF, Value: ""}
 	}
 
 	switch ch {
 	case '+':
 		l.next()
-		return Token{T_PLUS, "+"}
+		return token.Token{token.T_PLUS, "+"}
 	case '-':
 		l.next()
-		return Token{T_MINUS, "-"}
+		return token.Token{token.T_MINUS, "-"}
 	case '*':
 		l.next()
-		return Token{T_STAR, "*"}
+		return token.Token{token.T_STAR, "*"}
 	case '/':
 		l.next()
 		// TODO: Добавить обработку комментариев // и /* */ ?
-		return Token{T_SLASH, "/"}
+		return token.Token{token.T_SLASH, "/"}
 	case '=':
 		l.next()
 		if l.peek() == '=' {
 			l.next()
-			return Token{T_EQEQ, "=="}
+			return token.Token{token.T_EQEQ, "=="}
 		}
-		return Token{T_EQ, "="}	
+		return token.Token{token.T_EQ, "="}	
 	case ';':
 		l.next()
-		return Token{T_SEMI, ";"}
+		return token.Token{token.T_SEMI, ";"}
 	case '$':
 		l.next()
-		return Token{T_DOLLAR, "$"}
+		return token.Token{token.T_DOLLAR, "$"}
 	case '(':
 		l.next()
-		return Token{T_LPAREN, "("}
+		return token.Token{token.T_LPAREN, "("}
 	case ')':
 		l.next()
-		return Token{T_RPAREN, ")"}
+		return token.Token{token.T_RPAREN, ")"}
 	case '{':
 		l.next()
-		return Token{T_LBRACE, "{"}
+		return token.Token{token.T_LBRACE, "{"}
 	case '}':
 		l.next()
-		return Token{T_RBRACE, "}"}	
+		return token.Token{token.T_RBRACE, "}"}	
 	case '>':
 		l.next()
 		// TODO: Добавить >= ?
-		return Token{T_GT, ">"}	
+		return token.Token{token.T_GT, ">"}	
 	case '<':
 		l.next()
 		// TODO: Добавить <= ?
-		return Token{T_LT, "<"}
+		return token.Token{token.T_LT, "<"}
 	case '&':
 		l.next()
 		if l.peek() == '&' {
 			l.next()
-			return Token{T_AND, "&&"}
+			return token.Token{token.T_AND, "&&"}
 		} else {
-			return Token{T_ILLEGAL, "&"}
+			return token.Token{token.T_ILLEGAL, "&"}
 		}
 	case '|':
 		l.next()
 		if l.peek() == '|' {
 			l.next()
-			return Token{T_OR, "||"}
+			return token.Token{token.T_OR, "||"}
 		} else {
-			return Token{T_ILLEGAL, "|"}
+			return token.Token{token.T_ILLEGAL, "|"}
 		}
 		case '"': // FIX: Улучшенная обработка строк с экранированием
 		l.next() // съели открывающую "
@@ -135,7 +136,7 @@ func (l *Lexer) NextToken() Token {
 			}
 			if ch == 0 {
 				l.pos = startPos
-				return Token{T_ILLEGAL, "Unexpected end of string"}
+				return token.Token{token.T_ILLEGAL, "Unexpected end of string"}
 			}
 			if ch == '\\' {
 				l.next()
@@ -164,12 +165,12 @@ func (l *Lexer) NextToken() Token {
 				sb.WriteRune(l.next())
 			}
 		}
-		return Token{T_STRING, sb.String()}
+		return token.Token{token.T_STRING, sb.String()}
 	default:
 		if unicode.IsDigit(ch) {
 			// TODO: Добавить поддержку float?
 			val := l.readWhile(unicode.IsDigit)
-			return Token{T_NUMBER, val}
+			return token.Token{token.T_NUMBER, val}
 		}
 	
 		if unicode.IsLetter(ch) || ch == '_' {
@@ -178,22 +179,22 @@ func (l *Lexer) NextToken() Token {
 			})
 			switch val {
 			case "echo":
-				return Token{T_ECHO, val}
+				return token.Token{token.T_ECHO, val}
 			case "if":
-				return Token{T_IF, val}
+				return token.Token{token.T_IF, val}
 			case "else":
-				return Token{T_ELSE, val}
+				return token.Token{token.T_ELSE, val}
 			case "while":
-				return Token{T_WHILE, val}
+				return token.Token{token.T_WHILE, val}
 			case "for":
-				return Token{T_FOR, val}
+				return token.Token{token.T_FOR, val}
 			// TODO: Добавить другие ключевые слова (while, for, function, ...)
 			}		
-			return Token{T_IDENT, val}
+			return token.Token{token.T_IDENT, val}
 		}
 
 		charStr := string(ch)
 		l.next()
-		return Token{T_ILLEGAL, fmt.Sprintf("Undefined symbol: '%s'", charStr)}
+		return token.Token{token.T_ILLEGAL, fmt.Sprintf("Undefined symbol: '%s'", charStr)}
 	}
 }
