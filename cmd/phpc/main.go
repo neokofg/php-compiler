@@ -1,17 +1,15 @@
-// phpx-compiler: компилятор + режим --out для генерации бинарника
-
 package main
 
 import (
 	"fmt"
-	"os"
-	"strings"
-	"strconv"
-	"os/exec"
+	"github.com/neokofg/php-compiler/internal/compiler"
 	"github.com/neokofg/php-compiler/internal/lexer"
 	"github.com/neokofg/php-compiler/internal/parser"
 	"github.com/neokofg/php-compiler/internal/token"
-	"github.com/neokofg/php-compiler/internal/compiler"
+	"os"
+	"os/exec"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -23,7 +21,7 @@ func main() {
 	if len(os.Args) > 3 && os.Args[2] == "--out" {
 		outFile = os.Args[3]
 	}
-	
+
 	data, err := os.ReadFile(os.Args[1])
 	if err != nil {
 		fmt.Printf("File reading error %s: %v\n", os.Args[1], err)
@@ -48,14 +46,14 @@ func main() {
 			break
 		}
 		tokens = append(tokens, tok)
-	}	
+	}
 
 	parserInstance := parser.NewParser(tokens)
 	stmts, err := parserInstance.Parse()
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Syntax analyze error: %v\n", err)
-        os.Exit(1)
-    }
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Syntax analyze error: %v\n", err)
+		os.Exit(1)
+	}
 
 	for _, stmt := range stmts {
 		compiler.CompileStmt(stmt)
@@ -70,7 +68,7 @@ func main() {
 	}
 	defer f.Close()
 	defer os.Remove(tmpFile)
-	
+
 	_, err = f.WriteString("#include <stdint.h>\n")
 	if err != nil {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
@@ -143,9 +141,9 @@ func main() {
 	}
 
 	_, err = f.WriteString(fmt.Sprintf("\nsize_t constants_len = %d;\n\n", len(compiler.Constants)))
-    if err != nil {
-        panic(fmt.Sprintf("Error writing constants_len in %s: %v", tmpFile, err))
-    }
+	if err != nil {
+		panic(fmt.Sprintf("Error writing constants_len in %s: %v", tmpFile, err))
+	}
 
 	err = f.Close()
 	if err != nil {
