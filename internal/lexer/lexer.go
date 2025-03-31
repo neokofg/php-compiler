@@ -43,7 +43,7 @@ func NewLexer(input string) *Lexer {
 }
 
 func (l *Lexer) NextToken() token2.Token {
-	l.reader.SkipWhitespace()
+	l.reader.SkipWhitespaceAndComments()
 
 	ch := l.reader.Peek()
 	if ch == 0 {

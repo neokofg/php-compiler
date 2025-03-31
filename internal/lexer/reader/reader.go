@@ -56,8 +56,61 @@ func (r *SourceReader) ReadWhile(cond func(rune) bool) string {
 	return string(r.input[start:r.pos])
 }
 
-func (r *SourceReader) SkipWhitespace() {
+func (r *SourceReader) skipWhitespace() {
 	for unicode.IsSpace(r.Peek()) {
 		r.Next()
+	}
+}
+
+func (r *SourceReader) skipSingleLineComment() {
+	for {
+		ch := r.Peek()
+		if ch == 0 || ch == '\n' {
+			return
+		}
+		r.Next()
+	}
+}
+
+func (r *SourceReader) skipMultiLineComment() {
+	for {
+		ch := r.Peek()
+		if ch == 0 {
+			return
+		}
+		if ch == '*' && r.PeekNext() == '/' {
+			r.Next() // Skip *
+			r.Next() // Skip /
+			return
+		}
+		r.Next()
+	}
+}
+
+func (r *SourceReader) SkipWhitespaceAndComments() {
+	for {
+		r.skipWhitespace()
+
+		ch := r.Peek()
+		if ch == '/' {
+			nextCh := r.PeekNext()
+			if nextCh == '/' {
+				r.Next()
+				r.Next()
+				r.skipSingleLineComment()
+				continue
+			} else if nextCh == '*' {
+				r.Next()
+				r.Next()
+				r.skipMultiLineComment()
+				continue
+			}
+		} else if ch == '#' {
+			r.Next()
+			r.skipSingleLineComment()
+			continue
+		}
+
+		break
 	}
 }
