@@ -1,0 +1,3 @@
+*.o
+libvm.a
+vm_example

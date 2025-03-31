@@ -1,13 +1,8 @@
 #include "../../includes/vm.h"
+#include "../../includes/context.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-
-VMContext* vm_context_new();
-void vm_context_free(VMContext* context);
-void vm_context_set_bytecode(VMContext* context, byte_t* bytecode, size_t bytecode_len);
-void vm_context_set_constants(VMContext* context, Value* constants, size_t constants_len);
-void vm_context_set_handlers(VMContext* context, ValueHandler* value_handler, StackManager* stack_manager, ErrorHandler* error_handler);
 
 VM* vm_new(void) {
     VM* vm = (VM*)malloc(sizeof(VM));

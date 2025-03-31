@@ -12,11 +12,11 @@ import (
 	"strings"
 )
 
-func main() {
+func processArgs() (string, string, error) {
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: phpc file.php [--out name]")
-		return
+		return "", "", fmt.Errorf("Usage: phpc file.php [--out name]")
 	}
+
 	outFile := ""
 	if len(os.Args) > 3 && os.Args[2] == "--out" {
 		outFile = os.Args[3]
@@ -24,23 +24,26 @@ func main() {
 
 	data, err := os.ReadFile(os.Args[1])
 	if err != nil {
-		fmt.Printf("File reading error %s: %v\n", os.Args[1], err)
-		return
+		return "", "", fmt.Errorf("File reading error %s: %v", os.Args[1], err)
 	}
-	source := string(data)
 
+	source := string(data)
 	if strings.HasPrefix(source, "<?php") {
 		source = strings.TrimPrefix(source, "<?php")
 		source = strings.TrimLeft(source, " \n\r\t")
 	}
 
+	return source, outFile, nil
+}
+
+func lexicalAnalysis(source string) ([]token.Token, error) {
 	lexerInstance := lexer.NewLexer(source)
 	var tokens []token.Token
+
 	for {
 		tok := lexerInstance.NextToken()
 		if tok.Type == token.T_ILLEGAL {
-			fmt.Fprintf(os.Stderr, "Lexer analyze error: %s\n", tok.Value)
-			os.Exit(1)
+			return nil, fmt.Errorf("Lexer analyze error: %s", tok.Value)
 		}
 		if tok.Type == token.T_EOF {
 			break
@@ -48,137 +51,217 @@ func main() {
 		tokens = append(tokens, tok)
 	}
 
+	return tokens, nil
+}
+
+func parseAndCompile(tokens []token.Token) (*compiler.Compiler, error) {
 	parserInstance := parser.NewParser(tokens)
 	stmts, err := parserInstance.Parse()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Syntax analyze error: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("Syntax analyze error: %v", err)
 	}
 
-	// Use new compiler API
 	phpCompiler := compiler.New()
 	err = phpCompiler.CompileProgram(stmts)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Compilation error: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("Compilation error: %v", err)
 	}
 
+	return phpCompiler, nil
+}
+
+func generateVMCode(phpCompiler *compiler.Compiler, tmpFile string) error {
 	bytecode := phpCompiler.GetBytecode()
 	constants := phpCompiler.GetConstants()
 
-	// Rest of the code remains the same
-	tmpFile := "vm_exec_temp.c"
 	f, err := os.Create(tmpFile)
 	if err != nil {
-		panic(fmt.Sprintf("Cannot create temp c file %s: %v", tmpFile, err))
+		return fmt.Errorf("Cannot create temp c file %s: %v", tmpFile, err)
 	}
 	defer f.Close()
-	defer os.Remove(tmpFile)
 
-	_, err = f.WriteString("#include <stdint.h>\n")
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
-	}
-	_, err = f.WriteString("#include <stddef.h>\n")
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
-	}
-	_, err = f.WriteString("#include \"vm.h\"\n\n")
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	headers := []string{
+		"#include <stdint.h>\n",
+		"#include <stddef.h>\n",
+		"#include <stdio.h>\n",
+		"#include \"vm.h\"\n\n",
 	}
 
-	_, err = f.WriteString("uint8_t bytecode[] = {\n    ")
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
-	}
-	for i, b := range bytecode {
-		_, err = f.WriteString(fmt.Sprintf("0x%02X", b))
-		if err != nil {
-			panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	for _, header := range headers {
+		if _, err := f.WriteString(header); err != nil {
+			return fmt.Errorf("Error writing header in %s: %v", tmpFile, err)
 		}
+	}
+
+	if _, err := f.WriteString("uint8_t bytecode[] = {\n    "); err != nil {
+		return fmt.Errorf("Error writing bytecode start in %s: %v", tmpFile, err)
+	}
+
+	for i, b := range bytecode {
+		if _, err := f.WriteString(fmt.Sprintf("0x%02X", b)); err != nil {
+			return fmt.Errorf("Error writing bytecode in %s: %v", tmpFile, err)
+		}
+
 		if i != len(bytecode)-1 {
-			_, err = f.WriteString(", ")
-			if err != nil {
-				panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+			if _, err := f.WriteString(", "); err != nil {
+				return fmt.Errorf("Error writing bytecode separator in %s: %v", tmpFile, err)
 			}
+
 			if (i+1)%16 == 0 {
-				_, err = f.WriteString("\n    ")
-				if err != nil {
-					panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+				if _, err := f.WriteString("\n    "); err != nil {
+					return fmt.Errorf("Error writing bytecode newline in %s: %v", tmpFile, err)
 				}
 			}
 		}
 	}
-	_, err = f.WriteString("\n};\n")
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+
+	if _, err := f.WriteString("\n};\n"); err != nil {
+		return fmt.Errorf("Error writing bytecode end in %s: %v", tmpFile, err)
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("\nsize_t bytecode_len = %d;\n\n", len(bytecode)))
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	if _, err := f.WriteString(fmt.Sprintf("\nsize_t bytecode_len = %d;\n\n", len(bytecode))); err != nil {
+		return fmt.Errorf("Error writing bytecode_len in %s: %v", tmpFile, err)
 	}
 
-	_, err = f.WriteString("Value constants[] = {\n")
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+	if _, err := f.WriteString("Value constants[] = {\n"); err != nil {
+		return fmt.Errorf("Error writing constants start in %s: %v", tmpFile, err)
 	}
+
 	for _, c := range constants {
 		if c.Type == "string" {
-			_, err = f.WriteString(fmt.Sprintf("    {.type = TYPE_STRING, .value.str_val = %s},\n", strconv.Quote(c.Value)))
-			if err != nil {
-				panic(fmt.Sprintf("Error writing string in %s: %v", tmpFile, err))
+			if _, err := f.WriteString(fmt.Sprintf("    {.type = TYPE_STRING, .value.str_val = %s},\n",
+				strconv.Quote(c.Value))); err != nil {
+				return fmt.Errorf("Error writing string constant in %s: %v", tmpFile, err)
 			}
 		} else {
 			num, errAtoi := strconv.Atoi(c.Value)
 			if errAtoi != nil {
-				panic(fmt.Sprintf("Critical error: Cannot convert const '%s' to integer: %v", c.Value, errAtoi))
+				return fmt.Errorf("Critical error: Cannot convert const '%s' to integer: %v", c.Value, errAtoi)
 			}
-			_, err = f.WriteString(fmt.Sprintf("    {.type = TYPE_INT, .value.int_val = %d},\n", num))
-			if err != nil {
-				panic(fmt.Sprintf("Error writing int in %s: %v", tmpFile, err))
+
+			if _, err := f.WriteString(fmt.Sprintf("    {.type = TYPE_INT, .value.int_val = %d},\n", num)); err != nil {
+				return fmt.Errorf("Error writing int constant in %s: %v", tmpFile, err)
 			}
 		}
 	}
-	_, err = f.WriteString("};\n")
-	if err != nil {
-		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
+
+	if _, err := f.WriteString("};\n"); err != nil {
+		return fmt.Errorf("Error writing constants end in %s: %v", tmpFile, err)
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("\nsize_t constants_len = %d;\n\n", len(constants)))
-	if err != nil {
-		panic(fmt.Sprintf("Error writing constants_len in %s: %v", tmpFile, err))
+	if _, err := f.WriteString(fmt.Sprintf("\nsize_t constants_len = %d;\n\n", len(constants))); err != nil {
+		return fmt.Errorf("Error writing constants_len in %s: %v", tmpFile, err)
 	}
 
-	err = f.Close()
-	if err != nil {
-		panic(fmt.Sprintf("Error closing file %s: %v", tmpFile, err))
+	mainFunctionCode := []string{
+		"int main(int argc, char** argv) {\n",
+		"    VM* vm = vm_new();\n",
+		"    if (!vm) {\n",
+		"        fprintf(stderr, \"Failed to create VM\\n\");\n",
+		"        return 1;\n",
+		"    }\n\n",
+		"    // Optionally enable debug output\n",
+		"    if (argc > 1 && strcmp(argv[1], \"--debug\") == 0) {\n",
+		"        vm_set_debug_mode(vm, true);\n",
+		"    }\n\n",
+		"    printf(\"--- Starting VM execution ---\\n\");\n",
+		"    status_t status = vm_execute(vm, bytecode, bytecode_len, constants, constants_len);\n",
+		"    printf(\"--- VM execution completed with status: %d ---\\n\", status);\n\n",
+		"    vm_free(vm);\n\n",
+		"    // Free string constants\n",
+		"    for (size_t i = 0; i < constants_len; i++) {\n",
+		"        if (constants[i].type == TYPE_STRING && constants[i].value.str_val) {\n",
+		"            free(constants[i].value.str_val);\n",
+		"        }\n",
+		"    }\n\n",
+		"    return (status == STATUS_SUCCESS) ? 0 : 1;\n",
+		"}\n",
 	}
 
+	for _, line := range mainFunctionCode {
+		if _, err := f.WriteString(line); err != nil {
+			return fmt.Errorf("Error writing main function in %s: %v", tmpFile, err)
+		}
+	}
+
+	return nil
+}
+
+func compileAndRunVM(tmpFile string, outFile string) error {
 	target := "vm_exec"
 	if outFile != "" {
 		target = outFile
 	}
-	cmd := exec.Command("gcc", "-DCOMPILE_AS_EXECUTABLE", "-Ivm/includes", "-o", target, tmpFile, "vm/main.c")
+
+	vmDir := "vm"
+	cFlags := "-DCOMPILE_AS_EXECUTABLE"
+	includeFlag := "-I" + vmDir + "/includes"
+
+	cmd := exec.Command("gcc", cFlags, includeFlag, "-o", target,
+		tmpFile,
+		vmDir+"/src/core/vm.c",
+		vmDir+"/src/core/context.c",
+		vmDir+"/src/core/dispatcher.c",
+		vmDir+"/src/handlers/arithmetic.c",
+		vmDir+"/src/handlers/core.c",
+		vmDir+"/src/handlers/flow.c",
+		vmDir+"/src/handlers/logic.c",
+		vmDir+"/src/components/value.c",
+		vmDir+"/src/components/memory.c",
+		vmDir+"/src/components/stack.c",
+		vmDir+"/src/components/error.c")
+
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	fmt.Printf("Compiling C with command: %s\n", cmd.String())
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("VM compilation error, please report this error to repository owners")
-		return
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("VM compilation error, please report this error to repository owners: %v", err)
 	}
+
 	if outFile == "" {
 		fmt.Println("--- Starting VM ---")
 		execCmd := exec.Command("./" + target)
 		execCmd.Stdout = os.Stdout
 		execCmd.Stderr = os.Stderr
-		runErr := execCmd.Run()
-		if runErr != nil {
-			fmt.Println("VM runtime error, please report this error to repository owners:", runErr)
+
+		if runErr := execCmd.Run(); runErr != nil {
+			return fmt.Errorf("VM runtime error, please report this error to repository owners: %v", runErr)
 		}
+
 		fmt.Println("--- Ending VM ---")
 		os.Remove(target)
+	}
+
+	return nil
+}
+
+func main() {
+	source, outFile, err := processArgs()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	tokens, err := lexicalAnalysis(source)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+
+	phpCompiler, err := parseAndCompile(tokens)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+
+	tmpFile := "vm_exec_temp.c"
+	if err := generateVMCode(phpCompiler, tmpFile); err != nil {
+		panic(err)
+	}
+	defer os.Remove(tmpFile)
+
+	if err := compileAndRunVM(tmpFile, outFile); err != nil {
+		fmt.Println(err)
 	}
 }

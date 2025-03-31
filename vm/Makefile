@@ -20,7 +20,7 @@ EXAMPLE_OBJS = $(EXAMPLES_DIR)/simple.o
 TARGET = vm_exec
 EXAMPLE_TARGET = vm_example
 
-all: $(TARGET) $(EXAMPLE_TARGET)
+all: directories $(TARGET) $(EXAMPLE_TARGET)
 
 # Library for VM core
 libvm.a: $(COMMON_OBJS)

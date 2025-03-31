@@ -1,151 +1,118 @@
-#include "../../includes/vm.h"
-#include "../../includes/context.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include "../../includes/interfaces/opcode_handler.h"
 
-VM* vm_new(void) {
-    VM* vm = (VM*)malloc(sizeof(VM));
-    if (!vm) return NULL;
-
-    vm->memory_manager = memory_manager_new();
-    vm->value_handler = value_handler_new();
-    vm->stack_manager = stack_manager_new(vm->value_handler);
-    vm->error_handler = error_handler_new();
-    vm->opcode_handler = opcode_handler_new();
-
-    vm->context = vm_context_new();
-    if (!vm->context) {
-        vm_free(vm);
-        return NULL;
+status_t handle_load_const(VMContext* context) {
+    if (!context || !context->bytecode || !context->constants) {
+        return STATUS_ERROR;
     }
 
-    vm_context_set_handlers(vm->context, vm->value_handler, vm->stack_manager, vm->error_handler);
-
-    vm->running = false;
-    vm->last_status = STATUS_SUCCESS;
-    vm->debug_mode = false;
-
-    vm_register_opcode_handler(vm, OP_LOAD_CONST, handle_load_const);
-    vm_register_opcode_handler(vm, OP_PRINT, handle_print);
-    vm_register_opcode_handler(vm, OP_HALT, handle_halt);
-    vm_register_opcode_handler(vm, OP_POP, handle_pop);
-
-    vm_register_opcode_handler(vm, OP_ADD, handle_add);
-    vm_register_opcode_handler(vm, OP_SUB, handle_sub);
-    vm_register_opcode_handler(vm, OP_MUL, handle_mul);
-    vm_register_opcode_handler(vm, OP_DIV, handle_div);
-
-    vm_register_opcode_handler(vm, OP_STORE_VAR, handle_store_var);
-    vm_register_opcode_handler(vm, OP_LOAD_VAR, handle_load_var);
-
-    vm_register_opcode_handler(vm, OP_JUMP, handle_jump);
-    vm_register_opcode_handler(vm, OP_JUMP_IF_FALSE, handle_jump_if_false);
-
-    vm_register_opcode_handler(vm, OP_GT, handle_gt);
-    vm_register_opcode_handler(vm, OP_LT, handle_lt);
-    vm_register_opcode_handler(vm, OP_EQ, handle_eq);
-
-    vm_register_opcode_handler(vm, OP_AND, handle_and);
-    vm_register_opcode_handler(vm, OP_OR, handle_or);
-
-    return vm;
-}
-
-void vm_free(VM* vm) {
-    if (!vm) return;
-
-    if (vm->context) {
-        vm_context_free(vm->context);
+    if (context->ip >= context->bytecode_len) {
+        context->error_handler->runtime_error("Unexpected end of bytecode at ip=%zu", context->ip);
+        return STATUS_ERROR;
     }
 
-    if (vm->opcode_handler) opcode_handler_free(vm->opcode_handler);
-    if (vm->error_handler) error_handler_free(vm->error_handler);
-    if (vm->stack_manager) stack_manager_free(vm->stack_manager);
-    if (vm->value_handler) value_handler_free(vm->value_handler);
-    if (vm->memory_manager) memory_manager_free(vm->memory_manager);
+    byte_t const_idx = context->bytecode[context->ip++];
 
-    free(vm);
-}
-
-status_t vm_execute(VM* vm, byte_t* bytecode, size_t bytecode_len, Value* constants, size_t constants_len) {
-    if (!vm || !bytecode) return STATUS_ERROR;
-
-    vm_context_set_bytecode(vm->context, bytecode, bytecode_len);
-    vm_context_set_constants(vm->context, constants, constants_len);
-
-    vm->running = true;
-    vm->last_status = STATUS_SUCCESS;
-
-    while (vm->running && vm->context->ip < vm->context->bytecode_len) {
-        status_t status = vm_execute_instruction(vm);
-        if (status != STATUS_SUCCESS) {
-            vm->last_status = status;
-            vm->running = false;
-            return status;
-        }
+    if (const_idx >= context->constants_len) {
+        context->error_handler->runtime_error("Invalid constant index %d at ip=%zu, max allowed: %zu",
+                                              const_idx, context->ip - 1, context->constants_len - 1);
+        return STATUS_ERROR;
     }
+
+    context->stack_manager->push(context->constants[const_idx]);
 
     return STATUS_SUCCESS;
 }
 
-status_t vm_execute_instruction(VM* vm) {
-    if (!vm || !vm->running) return STATUS_ERROR;
-    if (vm->context->ip >= vm->context->bytecode_len) {
-        vm->running = false;
-        return STATUS_SUCCESS;
+status_t handle_print(VMContext* context) {
+    if (!context || !context->stack_manager) {
+        return STATUS_ERROR;
     }
 
-    byte_t opcode = vm->context->bytecode[vm->context->ip++];
-
-    if (vm->debug_mode) {
-        printf("DEBUG: ip=%zu, opcode=0x%02X (%s)\n",
-               vm->context->ip-1, opcode,
-               vm->opcode_handler->get_opcode_name(opcode));
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in PRINT at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
     }
 
-    return vm->opcode_handler->execute(vm->context, opcode);
+    Value value = context->stack_manager->pop();
+    context->value_handler->print(value);
+
+    return STATUS_SUCCESS;
 }
 
-void vm_reset(VM* vm) {
-    if (!vm) return;
-
-    if (vm->context) {
-        vm_context_reset(vm->context);
+status_t handle_halt(VMContext* context) {
+    if (!context) {
+        return STATUS_ERROR;
     }
 
-    if (vm->stack_manager) {
-        vm->stack_manager->reset();
+    // Set IP to the end of the bytecode to stop execution
+    context->ip = context->bytecode_len;
+
+    return STATUS_SUCCESS;
+}
+
+status_t handle_pop(VMContext* context) {
+    if (!context || !context->stack_manager) {
+        return STATUS_ERROR;
     }
 
-    vm->running = false;
-    vm->last_status = STATUS_SUCCESS;
-}
-
-bool vm_is_running(VM* vm) {
-    return vm && vm->running;
-}
-
-status_t vm_get_status(VM* vm) {
-    return vm ? vm->last_status : STATUS_ERROR;
-}
-
-void vm_set_debug_mode(VM* vm, bool debug_mode) {
-    if (vm) vm->debug_mode = debug_mode;
-}
-
-void vm_register_opcode_handler(VM* vm, byte_t opcode, OpcodeHandlerFunc handler) {
-    if (vm && vm->opcode_handler) {
-        vm->opcode_handler->register_handler(opcode, handler);
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in POP at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
     }
+
+    context->stack_manager->pop();
+
+    return STATUS_SUCCESS;
 }
 
-void vm_set_user_data(VM* vm, void* user_data) {
-    if (vm && vm->context) {
-        vm_context_set_user_data(vm->context, user_data);
+status_t handle_store_var(VMContext* context) {
+    if (!context || !context->bytecode || !context->variables) {
+        return STATUS_ERROR;
     }
+
+    if (context->ip >= context->bytecode_len) {
+        context->error_handler->runtime_error("Unexpected end of bytecode at ip=%zu", context->ip);
+        return STATUS_ERROR;
+    }
+
+    byte_t var_idx = context->bytecode[context->ip++];
+
+    if (var_idx >= VAR_COUNT) {
+        context->error_handler->runtime_error("Invalid variable index %d at ip=%zu, max allowed: %d",
+                                              var_idx, context->ip - 1, VAR_COUNT - 1);
+        return STATUS_ERROR;
+    }
+
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in STORE_VAR at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
+    }
+
+    Value value = context->stack_manager->pop();
+    context->variables[var_idx] = value;
+
+    return STATUS_SUCCESS;
 }
 
-void* vm_get_user_data(VM* vm) {
-    return (vm && vm->context) ? vm->context->user_data : NULL;
+status_t handle_load_var(VMContext* context) {
+    if (!context || !context->bytecode || !context->variables) {
+        return STATUS_ERROR;
+    }
+
+    if (context->ip >= context->bytecode_len) {
+        context->error_handler->runtime_error("Unexpected end of bytecode at ip=%zu", context->ip);
+        return STATUS_ERROR;
+    }
+
+    byte_t var_idx = context->bytecode[context->ip++];
+
+    if (var_idx >= VAR_COUNT) {
+        context->error_handler->runtime_error("Invalid variable index %d at ip=%zu, max allowed: %d",
+                                              var_idx, context->ip - 1, VAR_COUNT - 1);
+        return STATUS_ERROR;
+    }
+
+    context->stack_manager->push(context->variables[var_idx]);
+
+    return STATUS_SUCCESS;
 }

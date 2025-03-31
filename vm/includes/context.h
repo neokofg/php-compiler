@@ -1,7 +1,10 @@
 #ifndef VM_CONTEXT_H
 #define VM_CONTEXT_H
 
+#include "common.h"
 #include "interfaces/opcode_handler.h"
+
+struct VMContext;
 
 VMContext* vm_context_new(void);
 void vm_context_free(VMContext* context);
