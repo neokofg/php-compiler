@@ -25,7 +25,11 @@ func (p *ComparisonParser) Parse() (ast.Expr, error) {
 		return nil, err
 	}
 
-	for p.context.Peek().Type == token.T_GT || p.context.Peek().Type == token.T_LT || p.context.Peek().Type == token.T_EQEQ {
+	for p.context.Peek().Type == token.T_GT ||
+		p.context.Peek().Type == token.T_LT ||
+		p.context.Peek().Type == token.T_EQEQ ||
+		p.context.Peek().Type == token.T_NOTEQ {
+
 		opTok := p.context.Next()
 		right, err := p.addSubParser.Parse()
 		if err != nil {

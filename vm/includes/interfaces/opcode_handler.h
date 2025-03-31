@@ -63,6 +63,7 @@ status_t handle_jump_if_false(VMContext* context);
 status_t handle_gt(VMContext* context);
 status_t handle_lt(VMContext* context);
 status_t handle_eq(VMContext* context);
+status_t handle_not(VMContext* context);
 
 status_t handle_and(VMContext* context);
 status_t handle_or(VMContext* context);

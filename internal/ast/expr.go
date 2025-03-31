@@ -22,3 +22,8 @@ type BinaryExpr struct {
 	Op    token.TokenType
 	Right Expr
 }
+
+type UnaryExpr struct {
+	Op   token.TokenType
+	Expr Expr
+}

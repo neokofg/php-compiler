@@ -62,6 +62,7 @@ VM* vm_new(void) {
     vm_register_opcode_handler(vm, OP_GT, handle_gt);
     vm_register_opcode_handler(vm, OP_LT, handle_lt);
     vm_register_opcode_handler(vm, OP_EQ, handle_eq);
+    vm_register_opcode_handler(vm, OP_NOT, handle_not);
 
     vm_register_opcode_handler(vm, OP_AND, handle_and);
     vm_register_opcode_handler(vm, OP_OR, handle_or);

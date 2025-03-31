@@ -13,6 +13,7 @@ type exprCompiler struct {
 	stringCompiler *StringCompiler
 	varCompiler    *VarCompiler
 	binaryCompiler *BinaryCompiler
+	unaryCompiler  *UnaryCompiler
 }
 
 func NewCompiler(context interfaces.CompilationContext) interfaces.ExprCompiler {
@@ -20,12 +21,11 @@ func NewCompiler(context interfaces.CompilationContext) interfaces.ExprCompiler 
 		context: context,
 	}
 
-	// Инициализируем отдельные компиляторы для каждого типа выражений
 	compiler.numberCompiler = NewNumberCompiler(context)
 	compiler.stringCompiler = NewStringCompiler(context)
 	compiler.varCompiler = NewVarCompiler(context)
 
-	// Для BinaryCompiler нужна циклическая ссылка на сам exprCompiler
+	compiler.unaryCompiler = NewUnaryCompiler(context, compiler)
 	compiler.binaryCompiler = NewBinaryCompiler(context, compiler)
 
 	return compiler
@@ -39,6 +39,8 @@ func (c *exprCompiler) CompileExpr(expr ast.Expr) error {
 		return c.stringCompiler.Compile(e)
 	case *ast.VarExpr:
 		return c.varCompiler.Compile(e)
+	case *ast.UnaryExpr:
+		return c.unaryCompiler.Compile(e)
 	case *ast.BinaryExpr:
 		return c.binaryCompiler.Compile(e)
 	default:

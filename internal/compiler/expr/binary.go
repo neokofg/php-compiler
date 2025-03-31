@@ -49,6 +49,9 @@ func (c *BinaryCompiler) Compile(expr *ast.BinaryExpr) error {
 		c.context.GetBytecodeBuilder().Append(bytecode.OP_AND)
 	case token.T_OR:
 		c.context.GetBytecodeBuilder().Append(bytecode.OP_OR)
+	case token.T_NOTEQ:
+		c.context.GetBytecodeBuilder().Append(bytecode.OP_EQ)
+		c.context.GetBytecodeBuilder().Append(bytecode.OP_NOT)
 	default:
 		return fmt.Errorf("unsupported binary operator: %v", expr.Op)
 	}

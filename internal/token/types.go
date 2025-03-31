@@ -20,12 +20,14 @@ const (
 	T_SLASH // /
 
 	// -- Logical --
-	T_EQ   // =
-	T_EQEQ // ==
-	T_GT   // >
-	T_LT   // <
-	T_AND  // &&
-	T_OR   // ||
+	T_EQ    // =
+	T_EQEQ  // ==
+	T_GT    // >
+	T_LT    // <
+	T_AND   // &&
+	T_OR    // ||
+	T_NOT   // !
+	T_NOTEQ // !=
 
 	// -- Separators --
 	T_SEMI   // ;

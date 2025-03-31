@@ -21,6 +21,7 @@
 #define OP_GT               0x07
 #define OP_LT               0x08
 #define OP_EQ               0x0B
+#define OP_NOT              0x0D
 
 #define OP_AND              0x09
 #define OP_OR               0x0A

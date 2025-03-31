@@ -94,3 +94,21 @@ status_t handle_or(VMContext* context) {
 
     return STATUS_SUCCESS;
 }
+
+status_t handle_not(VMContext* context) {
+    if (!context || !context->stack_manager) {
+        return STATUS_ERROR;
+    }
+
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in NOT at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
+    }
+
+    Value val = context->stack_manager->pop();
+    bool result = !context->value_handler->to_boolean(val);
+
+    context->stack_manager->push(context->value_handler->create_boolean(result));
+
+    return STATUS_SUCCESS;
+}

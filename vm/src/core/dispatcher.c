@@ -59,6 +59,7 @@ static void init_opcode_names(void) {
     impl.opcode_names[OP_GT] = "GT";
     impl.opcode_names[OP_LT] = "LT";
     impl.opcode_names[OP_EQ] = "EQ";
+    impl.opcode_names[OP_NOT] = "NOT";
 
     impl.opcode_names[OP_AND] = "AND";
     impl.opcode_names[OP_OR] = "OR";

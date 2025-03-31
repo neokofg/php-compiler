@@ -19,4 +19,6 @@ const (
 	OP_OR            = 0x0A
 	OP_EQ            = 0x0B
 	OP_POP           = 0x0C
+	OP_NOT           = 0x0D
+	OP_NEQ           = 0x0E
 )

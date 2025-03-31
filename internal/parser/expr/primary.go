@@ -62,6 +62,14 @@ func (p *PrimaryParser) Parse() (ast.Expr, error) {
 		p.context.Next()
 		return nil, fmt.Errorf("Lexer error in position %d: %s", p.context.GetPos()-1, tok.Value)
 
+	case token.T_NOT:
+		p.context.Next()
+		expr, err := p.Parse()
+		if err != nil {
+			return nil, err
+		}
+		return &ast.UnaryExpr{Op: token.T_NOT, Expr: expr}, nil
+
 	default:
 		p.context.Next()
 		return nil, fmt.Errorf("Position %d: expected expression (num, string, var, '('), but found token: %v (%q)", p.context.GetPos()-1, tok.Type, tok.Value)
