@@ -27,6 +27,36 @@ import (
 	"strings"
 )
 
+func main() {
+	source, outFile, err := processArgs()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	tokens, err := lexicalAnalysis(source)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+
+	phpCompiler, err := parseAndCompile(tokens)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
+
+	tmpFile := "vm_exec_temp.c"
+	if err := generateVMCode(phpCompiler, tmpFile); err != nil {
+		panic(err)
+	}
+	defer os.Remove(tmpFile)
+
+	if err := compileAndRunVM(tmpFile, outFile); err != nil {
+		fmt.Println(err)
+	}
+}
+
 func processArgs() (string, string, error) {
 	if len(os.Args) < 2 {
 		return "", "", fmt.Errorf("Usage: phpc file.php [--out name]")
@@ -249,34 +279,4 @@ func compileAndRunVM(tmpFile string, outFile string) error {
 	}
 
 	return nil
-}
-
-func main() {
-	source, outFile, err := processArgs()
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-
-	tokens, err := lexicalAnalysis(source)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-
-	phpCompiler, err := parseAndCompile(tokens)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "%v\n", err)
-		os.Exit(1)
-	}
-
-	tmpFile := "vm_exec_temp.c"
-	if err := generateVMCode(phpCompiler, tmpFile); err != nil {
-		panic(err)
-	}
-	defer os.Remove(tmpFile)
-
-	if err := compileAndRunVM(tmpFile, outFile); err != nil {
-		fmt.Println(err)
-	}
 }
