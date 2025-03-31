@@ -92,6 +92,19 @@ Ultimate goal of this project is to be able to compile an entire Laravel applica
 Feel free to contribute, suggest ideas, or just follow along!  
 This is a fun and educational journey into the world of compilers and virtual machines 🚀
 
+## How to build
+```bash
+git clone https://github.com/neokofg/php-compiler
+
+cd php-compiler
+
+go build -o phpc cmd/phpc/main.go
+```
+
+## How to run
+```bash
+./phpc [path/to/file.php] --out [name]
+```
 ## License
 
 PHP Compiler and VM are licensed under the GNU General Public License v3.0 (GPLv3).  
