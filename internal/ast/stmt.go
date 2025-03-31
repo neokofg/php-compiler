@@ -1,0 +1,30 @@
+package ast
+
+type Stmt interface{}
+
+type AssignStmt struct {
+	Name string
+	Expr Expr
+}
+
+type EchoStmt struct {
+	Expr Expr
+}
+
+type IfStmt struct {
+	Cond Expr
+	Then []Stmt
+	Else []Stmt
+}
+
+type WhileStmt struct {
+	Cond Expr
+	Body []Stmt
+}
+
+type ForStmt struct {
+	Init Expr
+	Cond Expr
+	Incr Expr
+	Body []Stmt
+}

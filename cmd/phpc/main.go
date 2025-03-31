@@ -55,12 +55,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	for _, stmt := range stmts {
-		compiler.CompileStmt(stmt)
+	// Use new compiler API
+	phpCompiler := compiler.New()
+	err = phpCompiler.CompileProgram(stmts)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Compilation error: %v\n", err)
+		os.Exit(1)
 	}
 
-	compiler.Bytecode = append(compiler.Bytecode, compiler.OP_HALT)
+	bytecode := phpCompiler.GetBytecode()
+	constants := phpCompiler.GetConstants()
 
+	// Rest of the code remains the same
 	tmpFile := "vm_exec_temp.c"
 	f, err := os.Create(tmpFile)
 	if err != nil {
@@ -86,12 +92,12 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
 	}
-	for i, b := range compiler.Bytecode {
+	for i, b := range bytecode {
 		_, err = f.WriteString(fmt.Sprintf("0x%02X", b))
 		if err != nil {
 			panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
 		}
-		if i != len(compiler.Bytecode)-1 {
+		if i != len(bytecode)-1 {
 			_, err = f.WriteString(", ")
 			if err != nil {
 				panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
@@ -109,7 +115,7 @@ func main() {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("\nsize_t bytecode_len = %d;\n\n", len(compiler.Bytecode)))
+	_, err = f.WriteString(fmt.Sprintf("\nsize_t bytecode_len = %d;\n\n", len(bytecode)))
 	if err != nil {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
 	}
@@ -118,7 +124,7 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
 	}
-	for _, c := range compiler.Constants {
+	for _, c := range constants {
 		if c.Type == "string" {
 			_, err = f.WriteString(fmt.Sprintf("    {.type = TYPE_STRING, .value.str_val = %s},\n", strconv.Quote(c.Value)))
 			if err != nil {
@@ -140,7 +146,7 @@ func main() {
 		panic(fmt.Sprintf("Error writing in %s: %v", tmpFile, err))
 	}
 
-	_, err = f.WriteString(fmt.Sprintf("\nsize_t constants_len = %d;\n\n", len(compiler.Constants)))
+	_, err = f.WriteString(fmt.Sprintf("\nsize_t constants_len = %d;\n\n", len(constants)))
 	if err != nil {
 		panic(fmt.Sprintf("Error writing constants_len in %s: %v", tmpFile, err))
 	}

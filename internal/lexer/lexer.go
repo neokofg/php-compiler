@@ -1,59 +1,46 @@
 package lexer
 
 import (
-	"unicode"
+	"fmt"
+	"github.com/neokofg/php-compiler/internal/lexer/reader"
+	"github.com/neokofg/php-compiler/internal/lexer/tokenizer"
+	token2 "github.com/neokofg/php-compiler/internal/token"
 )
 
 type Lexer struct {
-	input []rune
-	pos   int
+	reader     *reader.SourceReader
+	tokenizers *tokenizer.TokenizerRegistry
 }
 
 func NewLexer(input string) *Lexer {
-	return &Lexer{input: []rune(input)}
-}
+	sourceReader := reader.NewSourceReader(input)
+	tokenizerRegistry := tokenizer.NewTokenizerRegistry()
 
-func (l *Lexer) GetPos() int {
-	return l.pos
-}
+	tokenizerRegistry.RegisterTokenizer(tokenizer.NewKeywordTokenizer())
+	tokenizerRegistry.RegisterTokenizer(tokenizer.NewNumberTokenizer())
+	tokenizerRegistry.RegisterTokenizer(tokenizer.NewOperatorTokenizer())
+	tokenizerRegistry.RegisterTokenizer(tokenizer.NewStringTokenizer())
 
-func (l *Lexer) SetPos(pos int) {
-	l.pos = pos
-}
-
-func (l *Lexer) Next() rune {
-	if l.pos >= len(l.input) {
-		return 0
-	}
-	ch := l.input[l.pos]
-	l.pos++
-	return ch
-}
-
-func (l *Lexer) Peek() rune {
-	if l.pos >= len(l.input) {
-		return 0
-	}
-	return l.input[l.pos]
-}
-
-func (l *Lexer) PeekNext() rune {
-	if l.pos+1 >= len(l.input) {
-		return 0
-	}
-	return l.input[l.pos+1]
-}
-
-func (l *Lexer) skipWhitespace() {
-	for unicode.IsSpace(l.Peek()) {
-		l.Next()
+	return &Lexer{
+		reader:     sourceReader,
+		tokenizers: tokenizerRegistry,
 	}
 }
 
-func (l *Lexer) ReadWhile(cond func(rune) bool) string {
-	start := l.pos
-	for cond(l.Peek()) {
-		l.Next()
+func (l *Lexer) NextToken() token2.Token {
+	l.reader.SkipWhitespace()
+
+	ch := l.reader.Peek()
+	if ch == 0 {
+		return token2.Token{Type: token2.T_EOF, Value: ""}
 	}
-	return string(l.input[start:l.pos])
+
+	tokenizerInstance := l.tokenizers.FindTokenizer(ch)
+	if tokenizerInstance != nil {
+		return tokenizerInstance.Tokenize(l.reader)
+	}
+
+	charStr := string(ch)
+	l.reader.Next()
+	return token2.Token{Type: token2.T_ILLEGAL, Value: fmt.Sprintf("Undefined symbol: '%s'", charStr)}
 }
