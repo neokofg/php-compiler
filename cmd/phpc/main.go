@@ -160,7 +160,7 @@ func main() {
 	if outFile != "" {
 		target = outFile
 	}
-	cmd := exec.Command("gcc", "-DCOMPILE_AS_EXECUTABLE", "-Ivm", "-o", target, tmpFile, "vm/vm.c")
+	cmd := exec.Command("gcc", "-DCOMPILE_AS_EXECUTABLE", "-Ivm/includes", "-o", target, tmpFile, "vm/main.c")
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
 	fmt.Printf("Compiling C with command: %s\n", cmd.String())
