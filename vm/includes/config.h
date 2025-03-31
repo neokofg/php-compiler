@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #ifndef VM_CONFIG_H
 #define VM_CONFIG_H
 

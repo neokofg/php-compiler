@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #include "../../includes/interfaces/memory_manager.h"
 #include <stdlib.h>
 #include <stdio.h>

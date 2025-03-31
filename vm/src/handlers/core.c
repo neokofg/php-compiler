@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #include "../../includes/interfaces/opcode_handler.h"
 
 status_t handle_load_const(VMContext* context) {

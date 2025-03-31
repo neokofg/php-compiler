@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #include "../../includes/interfaces/opcode_handler.h"
 
 #define MAX_OPCODES 256

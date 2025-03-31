@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #include "../../includes/interfaces/opcode_handler.h"
 
 static status_t check_stack_size(VMContext* context, int required_size) {

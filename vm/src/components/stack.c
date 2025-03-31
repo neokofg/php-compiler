@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #include "../../includes/interfaces/stack_manager.h"
 #include <stdio.h>
 #include <stdlib.h>

@@ -1,3 +1,4 @@
+// Licensed under GNU GPL v3. See LICENSE file for details.
 package ast
 
 import "github.com/neokofg/php-compiler/internal/token"

@@ -1,3 +1,4 @@
+// Licensed under GNU GPL v3. See LICENSE file for details.
 package stmt
 
 import (

@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #ifndef VM_OPCODE_HANDLER_H
 #define VM_OPCODE_HANDLER_H
 

@@ -1,3 +1,4 @@
+/* Licensed under GNU GPL v3. See LICENSE file for details. */
 #include "../../includes/interfaces/value_handler.h"
 #include <stdlib.h>
 #include <string.h>

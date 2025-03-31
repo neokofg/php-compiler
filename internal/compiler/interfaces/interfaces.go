@@ -1,3 +1,4 @@
+// Licensed under GNU GPL v3. See LICENSE file for details.
 package interfaces
 
 import (
@@ -7,7 +8,6 @@ import (
 	"github.com/neokofg/php-compiler/internal/compiler/variable"
 )
 
-// Интерфейсы компиляторов
 type ExprCompiler interface {
 	CompileExpr(expr ast.Expr) error
 }
@@ -16,14 +16,12 @@ type StmtCompiler interface {
 	CompileStmt(stmt ast.Stmt) error
 }
 
-// CompilationContext предоставляет контекст для компиляции
 type CompilationContext interface {
 	GetBytecodeBuilder() *bytecode.BytecodeBuilder
 	GetConstantPool() *constant.Pool
 	GetVariableManager() *variable.Manager
 }
 
-// Базовый контекст компиляции
 type Context struct {
 	BytecodeBuilder *bytecode.BytecodeBuilder
 	ConstantPool    *constant.Pool
@@ -42,7 +40,6 @@ func (c *Context) GetVariableManager() *variable.Manager {
 	return c.VariableManager
 }
 
-// Функция-фабрика для создания контекста
 func NewContext() *Context {
 	return &Context{
 		BytecodeBuilder: bytecode.NewBytecodeBuilder(),
