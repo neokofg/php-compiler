@@ -158,19 +158,19 @@ static bool greater_than(Value a, Value b) {
 static void print(Value value) {
     switch (value.type) {
         case TYPE_INT:
-            printf("%d\n", value.value.int_val);
+            printf("%d", value.value.int_val);
             break;
         case TYPE_STRING:
-            printf("%s\n", value.value.str_val ? value.value.str_val : "");
+            printf("%s", value.value.str_val ? value.value.str_val : "");
             break;
         case TYPE_BOOLEAN:
-            printf("%s\n", value.value.bool_val ? "true" : "false");
+            printf("%s", value.value.bool_val ? "true" : "false");
             break;
         case TYPE_NULL:
-            printf("null\n");
+            printf("null");
             break;
         default:
-            printf("unknown\n");
+            printf("unknown");
             break;
     }
 }

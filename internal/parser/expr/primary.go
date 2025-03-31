@@ -70,6 +70,14 @@ func (p *PrimaryParser) Parse() (ast.Expr, error) {
 		}
 		return &ast.UnaryExpr{Op: token.T_NOT, Expr: expr}, nil
 
+	case token.T_TRUE:
+		p.context.Next()
+		return &ast.BooleanLiteral{Value: true}, nil
+
+	case token.T_FALSE:
+		p.context.Next()
+		return &ast.BooleanLiteral{Value: false}, nil
+
 	default:
 		p.context.Next()
 		return nil, fmt.Errorf("Position %d: expected expression (num, string, var, '('), but found token: %v (%q)", p.context.GetPos()-1, tok.Type, tok.Value)

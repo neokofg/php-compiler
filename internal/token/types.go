@@ -43,4 +43,8 @@ const (
 	T_ELSE  // else
 	T_WHILE // while
 	T_FOR   // for
+
+	// -- Literals --
+	T_TRUE  // true
+	T_FALSE // false
 )

@@ -27,3 +27,7 @@ type UnaryExpr struct {
 	Op   token.TokenType
 	Expr Expr
 }
+
+type BooleanLiteral struct {
+	Value bool
+}

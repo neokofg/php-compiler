@@ -8,12 +8,13 @@ import (
 )
 
 type exprCompiler struct {
-	context        interfaces.CompilationContext
-	numberCompiler *NumberCompiler
-	stringCompiler *StringCompiler
-	varCompiler    *VarCompiler
-	binaryCompiler *BinaryCompiler
-	unaryCompiler  *UnaryCompiler
+	context         interfaces.CompilationContext
+	numberCompiler  *NumberCompiler
+	stringCompiler  *StringCompiler
+	booleanCompiler *BooleanCompiler
+	varCompiler     *VarCompiler
+	binaryCompiler  *BinaryCompiler
+	unaryCompiler   *UnaryCompiler
 }
 
 func NewCompiler(context interfaces.CompilationContext) interfaces.ExprCompiler {
@@ -23,6 +24,7 @@ func NewCompiler(context interfaces.CompilationContext) interfaces.ExprCompiler 
 
 	compiler.numberCompiler = NewNumberCompiler(context)
 	compiler.stringCompiler = NewStringCompiler(context)
+	compiler.booleanCompiler = NewBooleanCompiler(context)
 	compiler.varCompiler = NewVarCompiler(context)
 
 	compiler.unaryCompiler = NewUnaryCompiler(context, compiler)
@@ -37,6 +39,8 @@ func (c *exprCompiler) CompileExpr(expr ast.Expr) error {
 		return c.numberCompiler.Compile(e)
 	case *ast.StringLiteral:
 		return c.stringCompiler.Compile(e)
+	case *ast.BooleanLiteral:
+		return c.booleanCompiler.Compile(e)
 	case *ast.VarExpr:
 		return c.varCompiler.Compile(e)
 	case *ast.UnaryExpr:

@@ -3,7 +3,8 @@ package tokenizer
 
 import (
 	"github.com/neokofg/php-compiler/internal/lexer/interfaces"
-	token2 "github.com/neokofg/php-compiler/internal/token"
+	"github.com/neokofg/php-compiler/internal/token"
+	"strings"
 	"unicode"
 )
 
@@ -17,23 +18,27 @@ func (t *KeywordTokenizer) CanTokenize(r rune) bool {
 	return unicode.IsLetter(r) || r == '_'
 }
 
-func (t *KeywordTokenizer) Tokenize(reader interfaces.Reader) token2.Token {
+func (t *KeywordTokenizer) Tokenize(reader interfaces.Reader) token.Token {
 	val := reader.ReadWhile(func(r rune) bool {
 		return unicode.IsLetter(r) || unicode.IsDigit(r) || r == '_'
 	})
 
-	switch val {
+	switch strings.ToLower(val) {
 	case "echo":
-		return token2.Token{Type: token2.T_ECHO, Value: val}
+		return token.Token{Type: token.T_ECHO, Value: val}
 	case "if":
-		return token2.Token{Type: token2.T_IF, Value: val}
+		return token.Token{Type: token.T_IF, Value: val}
 	case "else":
-		return token2.Token{Type: token2.T_ELSE, Value: val}
+		return token.Token{Type: token.T_ELSE, Value: val}
 	case "while":
-		return token2.Token{Type: token2.T_WHILE, Value: val}
+		return token.Token{Type: token.T_WHILE, Value: val}
 	case "for":
-		return token2.Token{Type: token2.T_FOR, Value: val}
+		return token.Token{Type: token.T_FOR, Value: val}
+	case "true":
+		return token.Token{Type: token.T_TRUE, Value: val}
+	case "false":
+		return token.Token{Type: token.T_FALSE, Value: val}
 	default:
-		return token2.Token{Type: token2.T_IDENT, Value: val}
+		return token.Token{Type: token.T_IDENT, Value: val}
 	}
 }

@@ -3,8 +3,8 @@
 /*
 * This is the test for php multi-line comments ignoring
 */
-$var = 1;
-while ($var != 10000) {
+$var = true;
+while (true) {
     echo $var;
     $var = $var + 1;
 }
