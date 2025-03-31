@@ -89,3 +89,10 @@ Ultimate goal of this project is to be able to compile an entire Laravel applica
 
 Feel free to contribute, suggest ideas, or just follow along!  
 This is a fun and educational journey into the world of compilers and virtual machines 🚀
+
+## License
+
+PHP Compiler and VM are licensed under the GNU General Public License v3.0 (GPLv3).  
+You are free to use, modify, and distribute this software under the same license.
+
+See the [LICENSE](./LICENSE) file for more details.
