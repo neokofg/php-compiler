@@ -14,7 +14,7 @@ func NewOperatorTokenizer() *OperatorTokenizer {
 
 func (t *OperatorTokenizer) CanTokenize(r rune) bool {
 	switch r {
-	case '+', '-', '*', '/', '=', ';', '$', '(', ')', '{', '}', '>', '<', '&', '|', '!':
+	case '+', '-', '*', '/', '=', ';', '$', '(', ')', '{', '}', '>', '<', '&', '|', '!', '.':
 		return true
 	default:
 		return false
@@ -87,6 +87,9 @@ func (t *OperatorTokenizer) Tokenize(reader interfaces.Reader) token2.Token {
 			return token2.Token{Type: token2.T_NOTEQ, Value: "!="}
 		}
 		return token2.Token{Type: token2.T_NOT, Value: "!"}
+	case '.':
+		reader.Next()
+		return token2.Token{Type: token2.T_DOT, Value: "."}
 	default:
 		return token2.Token{Type: token2.T_ILLEGAL, Value: ""}
 	}

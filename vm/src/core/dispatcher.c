@@ -50,6 +50,8 @@ static void init_opcode_names(void) {
     impl.opcode_names[OP_MUL] = "MUL";
     impl.opcode_names[OP_DIV] = "DIV";
 
+    impl.opcode_names[OP_CONCAT] = "CONCAT";
+
     impl.opcode_names[OP_STORE_VAR] = "STORE_VAR";
     impl.opcode_names[OP_LOAD_VAR] = "LOAD_VAR";
 

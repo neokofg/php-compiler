@@ -205,20 +205,11 @@ func generateVMCode(phpCompiler *compiler.Compiler, tmpFile string) error {
 		"        fprintf(stderr, \"Failed to create VM\\n\");\n",
 		"        return 1;\n",
 		"    }\n\n",
-		"    // Optionally enable debug output\n",
 		"    if (argc > 1 && strcmp(argv[1], \"--debug\") == 0) {\n",
 		"        vm_set_debug_mode(vm, true);\n",
 		"    }\n\n",
-		"    printf(\"--- Starting VM execution ---\\n\");\n",
 		"    status_t status = vm_execute(vm, bytecode, bytecode_len, constants, constants_len);\n",
-		"    printf(\"--- VM execution completed with status: %d ---\\n\", status);\n\n",
 		"    vm_free(vm);\n\n",
-		"    // Free string constants\n",
-		"    for (size_t i = 0; i < constants_len; i++) {\n",
-		"        if (constants[i].type == TYPE_STRING && constants[i].value.str_val) {\n",
-		"            free(constants[i].value.str_val);\n",
-		"        }\n",
-		"    }\n\n",
 		"    return (status == STATUS_SUCCESS) ? 0 : 1;\n",
 		"}\n",
 	}
@@ -251,6 +242,7 @@ func compileAndRunVM(tmpFile string, outFile string) error {
 		vmDir+"/src/handlers/core.c",
 		vmDir+"/src/handlers/flow.c",
 		vmDir+"/src/handlers/logic.c",
+		vmDir+"/src/handlers/string.c",
 		vmDir+"/src/components/value.c",
 		vmDir+"/src/components/memory.c",
 		vmDir+"/src/components/stack.c",
@@ -258,14 +250,13 @@ func compileAndRunVM(tmpFile string, outFile string) error {
 
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = os.Stdout
-	fmt.Printf("Compiling C with command: %s\n", cmd.String())
+	//fmt.Printf("Compiling C with command: %s\n", cmd.String()) // cmd string debug
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("VM compilation error, please report this error to repository owners: %v", err)
 	}
 
 	if outFile == "" {
-		fmt.Println("--- Starting VM ---")
 		execCmd := exec.Command("./" + target)
 		execCmd.Stdout = os.Stdout
 		execCmd.Stderr = os.Stderr
@@ -274,7 +265,6 @@ func compileAndRunVM(tmpFile string, outFile string) error {
 			return fmt.Errorf("VM runtime error, please report this error to repository owners: %v", runErr)
 		}
 
-		fmt.Println("--- Ending VM ---")
 		os.Remove(target)
 	}
 

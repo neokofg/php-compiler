@@ -54,6 +54,8 @@ status_t handle_sub(VMContext* context);
 status_t handle_mul(VMContext* context);
 status_t handle_div(VMContext* context);
 
+status_t handle_concat(VMContext* context);
+
 status_t handle_store_var(VMContext* context);
 status_t handle_load_var(VMContext* context);
 

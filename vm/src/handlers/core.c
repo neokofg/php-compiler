@@ -35,7 +35,27 @@ status_t handle_print(VMContext* context) {
     }
 
     Value value = context->stack_manager->pop();
-    context->value_handler->print(value);
+    switch (value.type) {
+        case TYPE_INT:
+            printf("%d", value.value.int_val);
+            break;
+        case TYPE_STRING:
+            if (value.value.str_val) {
+                printf("%s", value.value.str_val);
+            }
+            break;
+        case TYPE_BOOLEAN:
+            printf("%s", value.value.bool_val ? "true" : "false");
+            break;
+        case TYPE_NULL:
+            printf("null");
+            break;
+        default:
+            printf("unknown");
+            break;
+    }
+
+    fflush(stdout);
 
     return STATUS_SUCCESS;
 }

@@ -12,6 +12,7 @@ type Parser struct {
 	primaryParser    *PrimaryParser
 	mulDivParser     *MulDivParser
 	addSubParser     *AddSubParser
+	concatParser     *ConcatParser
 	comparisonParser *ComparisonParser
 	andParser        *AndParser
 	orParser         *OrParser
@@ -25,7 +26,8 @@ func NewParser(context interfaces.TokenReader) interfaces.ExpressionParser {
 	parser.primaryParser = NewPrimaryParser(context)
 	parser.mulDivParser = NewMulDivParser(context, parser.primaryParser)
 	parser.addSubParser = NewAddSubParser(context, parser.mulDivParser)
-	parser.comparisonParser = NewComparisonParser(context, parser.addSubParser)
+	parser.concatParser = NewConcatParser(context, parser.addSubParser)
+	parser.comparisonParser = NewComparisonParser(context, parser.concatParser)
 	parser.andParser = NewAndParser(context, parser.comparisonParser)
 	parser.orParser = NewOrParser(context, parser.andParser)
 

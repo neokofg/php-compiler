@@ -11,7 +11,7 @@ EXAMPLES_DIR = examples
 
 # Object files
 CORE_OBJS = $(CORE_DIR)/vm.o $(CORE_DIR)/context.o $(CORE_DIR)/dispatcher.o
-HANDLERS_OBJS = $(HANDLERS_DIR)/arithmetic.o $(HANDLERS_DIR)/core.o $(HANDLERS_DIR)/flow.o $(HANDLERS_DIR)/logic.o
+HANDLERS_OBJS = $(HANDLERS_DIR)/arithmetic.o $(HANDLERS_DIR)/core.o $(HANDLERS_DIR)/flow.o $(HANDLERS_DIR)/logic.o $(HANDLERS_DIR)/string.o
 COMPONENTS_OBJS = $(COMPONENTS_DIR)/value.o $(COMPONENTS_DIR)/memory.o $(COMPONENTS_DIR)/stack.o $(COMPONENTS_DIR)/error.o
 COMMON_OBJS = $(CORE_OBJS) $(HANDLERS_OBJS) $(COMPONENTS_OBJS)
 MAIN_OBJS = main.o

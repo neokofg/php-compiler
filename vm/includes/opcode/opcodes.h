@@ -12,6 +12,8 @@
 #define OP_MUL              0x05
 #define OP_DIV              0x06
 
+#define OP_CONCAT           0x0F
+
 #define OP_STORE_VAR        0x10
 #define OP_LOAD_VAR         0x11
 

@@ -14,7 +14,19 @@ static Value create_int(int_t value) {
 static Value create_string(const char* value) {
     Value val;
     val.type = TYPE_STRING;
-    val.value.str_val = strdup(value);
+
+    if (value == NULL) {
+            val.value.str_val = NULL;
+    } else {
+        size_t len = strlen(value);
+        val.value.str_val = (char*)malloc(len + 1);
+
+        if (val.value.str_val) {
+            memcpy(val.value.str_val, value, len);
+            val.value.str_val[len] = '\0';
+        }
+    }
+
     return val;
 }
 
@@ -48,20 +60,36 @@ static int_t to_int(Value value) {
 
 static char* to_string(Value value) {
     char buffer[64];
+    char* result = NULL;
 
     switch (value.type) {
         case TYPE_INT:
             snprintf(buffer, sizeof(buffer), "%d", value.value.int_val);
-            return strdup(buffer);
+            result = strdup(buffer);
+            break;
         case TYPE_STRING:
-            return value.value.str_val ? strdup(value.value.str_val) : strdup("");
+            if (value.value.str_val) {
+                result = strdup(value.value.str_val);
+            } else {
+                result = strdup("");
+            }
+            break;
         case TYPE_BOOLEAN:
-            return strdup(value.value.bool_val ? "true" : "false");
+            result = strdup(value.value.bool_val ? "true" : "false");
+            break;
         case TYPE_NULL:
-            return strdup("null");
+            result = strdup("null");
+            break;
         default:
-            return strdup("unknown");
+            result = strdup("unknown");
+            break;
     }
+
+    if (!result) {
+        result = strdup("");
+    }
+
+    return result;
 }
 
 static bool to_boolean(Value value) {
@@ -161,7 +189,9 @@ static void print(Value value) {
             printf("%d", value.value.int_val);
             break;
         case TYPE_STRING:
-            printf("%s", value.value.str_val ? value.value.str_val : "");
+            if (value.value.str_val) {
+                printf("%s", value.value.str_val);
+            }
             break;
         case TYPE_BOOLEAN:
             printf("%s", value.value.bool_val ? "true" : "false");
@@ -173,11 +203,14 @@ static void print(Value value) {
             printf("unknown");
             break;
     }
+
+    fflush(stdout);
 }
 
 static void free_value(Value value) {
     if (value.type == TYPE_STRING && value.value.str_val != NULL) {
         free(value.value.str_val);
+        value.value.str_val = NULL;
     }
 }
 

@@ -14,7 +14,8 @@ func NewExpression(context interfaces.TokenReader) *Expression {
 	primaryParser := NewPrimaryParser(context)
 	mulDivParser := NewMulDivParser(context, primaryParser)
 	addSubParser := NewAddSubParser(context, mulDivParser)
-	comparisonParser := NewComparisonParser(context, addSubParser)
+	concatParser := NewConcatParser(context, addSubParser)
+	comparisonParser := NewComparisonParser(context, concatParser)
 	andParser := NewAndParser(context, comparisonParser)
 	orParser := NewOrParser(context, andParser)
 

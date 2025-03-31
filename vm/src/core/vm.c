@@ -53,6 +53,8 @@ VM* vm_new(void) {
     vm_register_opcode_handler(vm, OP_MUL, handle_mul);
     vm_register_opcode_handler(vm, OP_DIV, handle_div);
 
+    vm_register_opcode_handler(vm, OP_CONCAT, handle_concat);
+
     vm_register_opcode_handler(vm, OP_STORE_VAR, handle_store_var);
     vm_register_opcode_handler(vm, OP_LOAD_VAR, handle_load_var);
 

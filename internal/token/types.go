@@ -47,4 +47,7 @@ const (
 	// -- Literals --
 	T_TRUE  // true
 	T_FALSE // false
+
+	// -- Binary Operators --
+	T_DOT // .
 )

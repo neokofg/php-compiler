@@ -12,6 +12,8 @@ const (
 	OP_MUL = 0x05
 	OP_DIV = 0x06
 
+	OP_CONCAT = 0x0F
+
 	OP_STORE_VAR = 0x10
 	OP_LOAD_VAR  = 0x11
 

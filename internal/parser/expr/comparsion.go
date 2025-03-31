@@ -9,18 +9,18 @@ import (
 
 type ComparisonParser struct {
 	context      interfaces.TokenReader
-	addSubParser *AddSubParser
+	concatParser *ConcatParser
 }
 
-func NewComparisonParser(context interfaces.TokenReader, addSubParser *AddSubParser) *ComparisonParser {
+func NewComparisonParser(context interfaces.TokenReader, concatParser *ConcatParser) *ComparisonParser {
 	return &ComparisonParser{
 		context:      context,
-		addSubParser: addSubParser,
+		concatParser: concatParser,
 	}
 }
 
 func (p *ComparisonParser) Parse() (ast.Expr, error) {
-	left, err := p.addSubParser.Parse()
+	left, err := p.concatParser.Parse()
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +31,7 @@ func (p *ComparisonParser) Parse() (ast.Expr, error) {
 		p.context.Peek().Type == token.T_NOTEQ {
 
 		opTok := p.context.Next()
-		right, err := p.addSubParser.Parse()
+		right, err := p.concatParser.Parse()
 		if err != nil {
 			return nil, err
 		}
