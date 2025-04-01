@@ -45,7 +45,7 @@ Ultimate goal of this project is to be able to compile an entire Laravel applica
 
 ---
 
-### 🧱 Phase 4: Data structures
+### 🧱 Phase 4: Data structures (release v0.1)
 - [ ] Arrays (indexed and associative)
 - [ ] Basic array operations (`[]`, `$arr['key']`)
 - [ ] Iteration over arrays (`foreach`)
