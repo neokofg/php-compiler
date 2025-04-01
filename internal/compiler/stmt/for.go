@@ -23,7 +23,6 @@ func NewForCompiler(context interfaces.CompilationContext, exprCompiler interfac
 }
 
 func (c *ForCompiler) Compile(stmt *ast.ForStmt) error {
-	// Initialize
 	if stmt.Init != nil {
 		if err := c.exprCompiler.CompileExpr(stmt.Init); err != nil {
 			return err
@@ -31,15 +30,19 @@ func (c *ForCompiler) Compile(stmt *ast.ForStmt) error {
 		c.context.GetBytecodeBuilder().Append(bytecode.OP_POP)
 	}
 
-	conditionStartPos := c.context.GetBytecodeBuilder().CurrentPosition()
+	loop := c.context.EnterLoop()
+	defer func() {
+		c.context.ExitLoop()
+	}()
 
-	// Condition
+	conditionStartPos := c.context.GetBytecodeBuilder().CurrentPosition()
+	loop.StartPos = conditionStartPos
+
 	if stmt.Cond != nil {
 		if err := c.exprCompiler.CompileExpr(stmt.Cond); err != nil {
 			return err
 		}
 	} else {
-		// Default condition is true
 		trueConstIdx := c.context.GetConstantPool().Add(constant.Constant{
 			Type:  "int",
 			Value: "1",
@@ -50,16 +53,17 @@ func (c *ForCompiler) Compile(stmt *ast.ForStmt) error {
 
 	jumpFalsePos := c.context.GetBytecodeBuilder().CurrentPosition()
 	c.context.GetBytecodeBuilder().Append(bytecode.OP_JUMP_IF_FALSE)
-	c.context.GetBytecodeBuilder().AppendUint16(0xFFFF) // Placeholder
+	c.context.GetBytecodeBuilder().AppendUint16(0xFFFF)
 
-	// Body
 	for _, bodyStmt := range stmt.Body {
 		if err := c.stmtCompiler.CompileStmt(bodyStmt); err != nil {
 			return err
 		}
 	}
 
-	// Increment
+	incrementPos := c.context.GetBytecodeBuilder().CurrentPosition()
+	loop.ConditionPos = incrementPos
+
 	if stmt.Incr != nil {
 		if err := c.exprCompiler.CompileExpr(stmt.Incr); err != nil {
 			return err
@@ -67,15 +71,17 @@ func (c *ForCompiler) Compile(stmt *ast.ForStmt) error {
 		c.context.GetBytecodeBuilder().Append(bytecode.OP_POP)
 	}
 
-	// Jump back to condition
 	jumpBackOffset := conditionStartPos - (c.context.GetBytecodeBuilder().CurrentPosition() + 3)
 	c.context.GetBytecodeBuilder().Append(bytecode.OP_JUMP)
 	c.context.GetBytecodeBuilder().AppendInt16(int16(jumpBackOffset))
 
-	// Patch the jump if false
 	loopEndPos := c.context.GetBytecodeBuilder().CurrentPosition()
+	loop.EndPos = loopEndPos
+
 	jumpFalseOffset := uint16(loopEndPos - (jumpFalsePos + 3))
 	c.context.GetBytecodeBuilder().PatchUint16(jumpFalsePos+1, jumpFalseOffset)
+
+	c.context.ApplyPendingJumps()
 
 	return nil
 }

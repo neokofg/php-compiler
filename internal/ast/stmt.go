@@ -29,3 +29,12 @@ type ForStmt struct {
 	Incr Expr
 	Body []Stmt
 }
+
+type BreakStmt struct{}
+
+type ContinueStmt struct{}
+
+type DoWhileStmt struct {
+	Body []Stmt
+	Cond Expr
+}

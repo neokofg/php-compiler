@@ -1,113 +1,87 @@
-## It's still PHP. It just compiles. It's just async. It's just fast.
+# 💡 phpc — The PHP Compiler
 
-### Hello everyone!
-
-This is php compiler project. This project tries to compile interpreted language — PHP — into native code.
-Ultimate goal of this project is to be able to compile an entire Laravel application.
+> **It’s still PHP. It just compiles. It's just fast.**
 
 ---
 
-## 🧭 Roadmap for PHP Compiler (phpc)
+## 👋 What is this?
 
-> Core idea: Compile PHP source code into IR bytecode and execute it via a custom C-based VM.
+**`phpc`** is a next-gen compiler for PHP. It compiles your PHP code to bytecode, runs it in a blazing-fast virtual machine (written in C), and aims for full compatibility with existing PHP applications — including Laravel.
 
----
-
-### ✅ Phase 1: Minimal working compiler (DONE)
-- [x] Lexer and parser for basic expressions
-- [x] Support for:
-  - Integer and string literals
-  - Arithmetic operators (`+`, `-`, `*`, `/`)
-  - Variables (`$x = ...`)
-  - `echo` statements
-  - `if/else` with conditionals
-- [x] Bytecode compiler in Go
-- [x] Virtual machine in C
-- [x] CLI tool with `--out` mode to generate executable
+This isn’t a reimagining.  
+This is still **PHP** — just without the interpreter.
 
 ---
 
-### 🔄 Phase 2: Expression and control flow extensions (IN PROGRESS)
-- [x] Logical operators: `&&`, `||`
-- [x] Comparison operators: `==`, `>`, `<`
-- [x] Other operators: `.`,`!`,`!=`
-- [x] Boolean types: `true`, `false`
-- [x] `while`, `for`
-- [ ] `switch`, `break`, `continue`
+## 🚀 Why?
+
+Because we want:
+
+- **Real performance gains** — without rewriting apps in Go, Rust, or C++
+- **Portable, single-file binaries** — no FPM, no PHP runtime, no weird setup
+- **Developer joy** — write PHP as always, run it like a system language
+
+And maybe — just maybe — make PHP cool again 😎
 
 ---
 
-### 🧩 Phase 3: Functions & scopes
-- [ ] Function declaration and calls
-- [ ] Return values
-- [ ] Local variables and scoping rules
-- [ ] Recursion support
+## 🧠 How does it work?
+
+`phpc` uses a **hybrid compilation model**:
+
+- Static parts of your PHP are compiled to **bytecode**
+- Dynamic constructs (like `eval`, `__call`, etc) are handled by a **built-in mini interpreter**
+- The bytecode is executed in a **custom virtual machine** written in C
+- Result: native-speed execution with PHP-level flexibility
 
 ---
 
-### 🧱 Phase 4: Data structures
-- [ ] Arrays (indexed and associative)
-- [ ] Basic array operations (`[]`, `$arr['key']`)
-- [ ] Iteration over arrays (`foreach`)
-- [ ] String interpolation
+## 🧭 Roadmap (Short & Sweet)
+
+| Phase | Status | Highlights |
+|-------|--------|-----------|
+| 🛠 Core Compiler & VM | ✅ Done | Lexing, parsing, bytecode, C-VM |
+| 🔁 Control flow & logic | 🔄 In progress | if/else, loops, logical ops |
+| 🔣 Functions & scopes | 🟡 Soon | user-defined functions, recursion |
+| 📦 Arrays & structures | ⏳ Planned | arrays, foreach, string handling |
+| 🧱 OOP | ⏳ Planned | classes, inheritance, magic methods |
+| ⚙️ Runtime features | ⏳ Planned | async, multithreading, autoload |
+| 🎯 Laravel-ready | 🚀 Ultimate goal | run Laravel without PHP installed |
 
 ---
 
-### 🏗 Phase 5: Object-oriented features
-- [ ] Class declarations
-- [ ] Properties and methods
-- [ ] Constructors (`__construct`)
-- [ ] `this` keyword
-- [ ] Inheritance and interfaces
-- [ ] Traits
-- [ ] Private classes
+## ✨ Why should you follow this repo?
+
+Because this is **not a toy project.**  
+This is a serious attempt to:
+
+- Turn PHP into a **systems-capable compiled language**
+- Deliver **drop-in speed** for legacy and modern codebases
+- Build a **dev toolchain** for a language that deserves better
+
+Whether you're curious, nostalgic, or want to contribute —  
+**hit that ⭐️, press `watch`, and drop by whenever.**
+
+Your support means everything.
 
 ---
 
-### 📚 Phase 6: Built-in functions and standard library
-- [ ] Add native C implementations for core functions (`strlen`, `isset`, etc.)
-- [ ] Bridge between compiled PHP and C-implemented internals
-- [ ] Add support for include/require
-- [ ] Async runtime
-- [ ] Multithreaded runtime
+## 🧪 Try it out
 
----
-
-### ⚙️ Phase 7: Overall PHP support
-- [ ] Namespace support (`use`, `namespace`)
-- [ ] Composer-style autoloading
-- [ ] Exception handling (`try/catch`)
-- [ ] Type hints and attributes
-- [ ] Anonymous functions / closures
-- [ ] Reflection (if possible)
-- [ ] Runtime environment setup (DB, routes, config)
-
----
-
-## 🚀 Ultimate goal
-- Compile and run a **real Laravel app** without relying on the PHP interpreter.
-
----
-
-Feel free to contribute, suggest ideas, or just follow along!  
-This is a fun and educational journey into the world of compilers and virtual machines 🚀
-
-## How to build
 ```bash
 git clone https://github.com/neokofg/php-compiler
-
 cd php-compiler
-
 go build -o phpc cmd/phpc/main.go
+./phpc examples/hello.php --out hello.bin
 ```
 
-## How to run
-```bash
-./phpc [path/to/file.php] --out [name]
-```
-## License
+---
+## 🧑‍💻 Want to contribute?
 
-PHP Compiler and VM are licensed under the GNU General Public License v3.0 (GPLv3).  
-You are free to use, modify, and distribute this software under the same license.
+Yes, please.  
+Ideas, bug reports, pull requests, code reviews — all welcome.
 
-See the [LICENSE](./LICENSE) file for more details.
+---
+## 📜 License
+Licensed under GPLv3.  
+Open forever. Free forever. PHP forever.

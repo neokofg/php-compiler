@@ -42,12 +42,15 @@ const (
 	T_RBRACE // }
 
 	// -- Statements --
-	T_ECHO  // echo
-	T_IF    // if
-	T_ELSE  // else
-	T_WHILE // while
-	T_FOR   // for
-
+	T_ECHO     // echo
+	T_IF       // if
+	T_ELSE     // else
+	T_WHILE    // while
+	T_FOR      // for
+	T_BREAK    // break
+	T_CONTINUE // continue
+	T_DO       // do
+	
 	// -- Literals --
 	T_TRUE  // true
 	T_FALSE // false

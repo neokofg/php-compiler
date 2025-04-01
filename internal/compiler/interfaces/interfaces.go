@@ -20,12 +20,42 @@ type CompilationContext interface {
 	GetBytecodeBuilder() *bytecode.BytecodeBuilder
 	GetConstantPool() *constant.Pool
 	GetVariableManager() *variable.Manager
+
+	EnterLoop() *LoopContext
+	ExitLoop()
+	GetCurrentLoop() *LoopContext
+
+	AddPendingJump(position int, isBreak bool)
+	ApplyPendingJumps()
+}
+
+type JumpPatch struct {
+	Position int
+	IsBreak  bool
+}
+
+type LoopContext struct {
+	StartPos     int
+	ConditionPos int
+	EndPos       int
+	Parent       *LoopContext
+	PendingJumps []JumpPatch
 }
 
 type Context struct {
 	BytecodeBuilder *bytecode.BytecodeBuilder
 	ConstantPool    *constant.Pool
 	VariableManager *variable.Manager
+	CurrentLoop     *LoopContext
+}
+
+func NewContext() *Context {
+	return &Context{
+		BytecodeBuilder: bytecode.NewBytecodeBuilder(),
+		ConstantPool:    constant.NewPool(),
+		VariableManager: variable.NewManager(),
+		CurrentLoop:     nil,
+	}
 }
 
 func (c *Context) GetBytecodeBuilder() *bytecode.BytecodeBuilder {
@@ -40,10 +70,48 @@ func (c *Context) GetVariableManager() *variable.Manager {
 	return c.VariableManager
 }
 
-func NewContext() *Context {
-	return &Context{
-		BytecodeBuilder: bytecode.NewBytecodeBuilder(),
-		ConstantPool:    constant.NewPool(),
-		VariableManager: variable.NewManager(),
+func (c *Context) GetCurrentLoop() *LoopContext {
+	return c.CurrentLoop
+}
+
+func (c *Context) EnterLoop() *LoopContext {
+	loop := &LoopContext{
+		Parent:       c.CurrentLoop,
+		PendingJumps: make([]JumpPatch, 0),
+	}
+	c.CurrentLoop = loop
+	return loop
+}
+
+func (c *Context) ExitLoop() {
+	if c.CurrentLoop != nil {
+		c.CurrentLoop = c.CurrentLoop.Parent
+	}
+}
+
+func (c *Context) AddPendingJump(position int, isBreak bool) {
+	if c.CurrentLoop != nil {
+		c.CurrentLoop.PendingJumps = append(c.CurrentLoop.PendingJumps, JumpPatch{
+			Position: position,
+			IsBreak:  isBreak,
+		})
+	}
+}
+
+func (c *Context) ApplyPendingJumps() {
+	if c.CurrentLoop == nil {
+		return
+	}
+
+	for _, patch := range c.CurrentLoop.PendingJumps {
+		targetPos := c.CurrentLoop.ConditionPos
+		if patch.IsBreak {
+			targetPos = c.CurrentLoop.EndPos
+		}
+
+		if targetPos > 0 {
+			offset := uint16(targetPos - (patch.Position + 3))
+			c.BytecodeBuilder.PatchUint16(patch.Position+1, offset)
+		}
 	}
 }

@@ -97,4 +97,7 @@ status_t handle_assign_div(VMContext* context);
 status_t handle_assign_mod(VMContext* context);
 status_t handle_assign_concat(VMContext* context);
 
+status_t handle_break(VMContext* context);
+status_t handle_continue(VMContext* context);
+
 #endif /* VM_OPCODE_HANDLER_H */

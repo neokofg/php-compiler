@@ -91,6 +91,9 @@ static void init_opcode_names(void) {
     impl.opcode_names[OP_ASSIGN_DIV] = "ASSIGN_DIV";
     impl.opcode_names[OP_ASSIGN_MOD] = "ASSIGN_MOD";
     impl.opcode_names[OP_ASSIGN_CONCAT] = "ASSIGN_CONCAT";
+
+    impl.opcode_names[OP_BREAK] = "BREAK";
+    impl.opcode_names[OP_CONTINUE] = "CONTINUE";
 }
 
 OpcodeHandler* opcode_handler_new(void) {

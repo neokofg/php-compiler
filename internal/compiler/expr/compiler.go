@@ -4,6 +4,7 @@ package expr
 import (
 	"fmt"
 	"github.com/neokofg/php-compiler/internal/ast"
+	"github.com/neokofg/php-compiler/internal/compiler/bytecode"
 	"github.com/neokofg/php-compiler/internal/compiler/interfaces"
 )
 
@@ -55,7 +56,24 @@ func (c *exprCompiler) CompileExpr(expr ast.Expr) error {
 		return c.postfixCompiler.Compile(e)
 	case *ast.PrefixExpr:
 		return c.prefixCompiler.Compile(e)
+	case *ast.AssignExpr:
+		return c.compileAssignExpr(e)
 	default:
 		return fmt.Errorf("unsupported expression type: %T", expr)
 	}
+}
+
+func (c *exprCompiler) compileAssignExpr(expr *ast.AssignExpr) error {
+	if err := c.CompileExpr(expr.Expr); err != nil {
+		return err
+	}
+
+	varIdx := c.context.GetVariableManager().GetIndex(expr.Name)
+	c.context.GetBytecodeBuilder().Append(bytecode.OP_STORE_VAR)
+	c.context.GetBytecodeBuilder().Append(byte(varIdx))
+
+	c.context.GetBytecodeBuilder().Append(bytecode.OP_LOAD_VAR)
+	c.context.GetBytecodeBuilder().Append(byte(varIdx))
+
+	return nil
 }

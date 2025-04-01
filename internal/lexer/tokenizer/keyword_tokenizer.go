@@ -38,6 +38,12 @@ func (t *KeywordTokenizer) Tokenize(reader interfaces.Reader) token.Token {
 		return token.Token{Type: token.T_TRUE, Value: val}
 	case "false":
 		return token.Token{Type: token.T_FALSE, Value: val}
+	case "break":
+		return token.Token{Type: token.T_BREAK, Value: val}
+	case "continue":
+		return token.Token{Type: token.T_CONTINUE, Value: val}
+	case "do":
+		return token.Token{Type: token.T_DO, Value: val}
 	default:
 		return token.Token{Type: token.T_IDENT, Value: val}
 	}

@@ -47,3 +47,8 @@ type CompoundAssignStmt struct {
 	Op   token.TokenType
 	Expr Expr
 }
+
+type AssignExpr struct {
+	Name string
+	Expr Expr
+}

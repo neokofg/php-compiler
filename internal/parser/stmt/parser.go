@@ -12,12 +12,13 @@ type Parser struct {
 	context    interfaces.TokenReader
 	exprParser interfaces.ExpressionParser
 
-	assignParser *AssignParser
-	echoParser   *EchoParser
-	ifParser     *IfParser
-	whileParser  *WhileParser
-	forParser    *ForParser
-	blockParser  *BlockParser
+	assignParser  *AssignParser
+	echoParser    *EchoParser
+	ifParser      *IfParser
+	whileParser   *WhileParser
+	forParser     *ForParser
+	blockParser   *BlockParser
+	doWhileParser *DoWhileParser
 }
 
 func NewParser(context interfaces.TokenReader, exprParser interfaces.ExpressionParser) interfaces.StatementParser {
@@ -33,6 +34,7 @@ func NewParser(context interfaces.TokenReader, exprParser interfaces.ExpressionP
 	parser.ifParser = NewIfParser(context, exprParser, parser.blockParser)
 	parser.whileParser = NewWhileParser(context, exprParser, parser.blockParser)
 	parser.forParser = NewForParser(context, exprParser, parser.blockParser)
+	parser.doWhileParser = NewDoWhileParser(context, exprParser, parser.blockParser)
 
 	return parser
 }
@@ -51,6 +53,22 @@ func (p *Parser) ParseStatement() (ast.Stmt, error) {
 		return p.whileParser.Parse()
 	case token.T_FOR:
 		return p.forParser.Parse()
+	case token.T_BREAK:
+		p.context.Next()
+		_, err := p.context.Expect(token.T_SEMI)
+		if err != nil {
+			return nil, err
+		}
+		return &ast.BreakStmt{}, nil
+	case token.T_CONTINUE:
+		p.context.Next()
+		_, err := p.context.Expect(token.T_SEMI)
+		if err != nil {
+			return nil, err
+		}
+		return &ast.ContinueStmt{}, nil
+	case token.T_DO:
+		return p.doWhileParser.Parse()
 	default:
 		if peekedToken.Type == token.T_ILLEGAL {
 			return nil, fmt.Errorf("Lexer error in position %d: %s", p.context.GetPos(), peekedToken.Value)

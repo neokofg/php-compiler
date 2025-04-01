@@ -23,18 +23,48 @@ func NewForParser(context interfaces.TokenReader, exprParser interfaces.Expressi
 }
 
 func (p *ForParser) Parse() (ast.Stmt, error) {
-	p.context.Next()
+	p.context.Next() // for
 
 	_, err := p.context.Expect(token.T_LPAREN)
 	if err != nil {
 		return nil, err
 	}
 
-	var initExpr ast.Expr
+	var initExpr ast.Expr = nil
 	if p.context.Peek().Type != token.T_SEMI {
-		initExpr, err = p.exprParser.ParseExpression()
-		if err != nil {
-			return nil, fmt.Errorf("error parsing for-loop initializer: %w", err)
+		if p.context.Peek().Type == token.T_DOLLAR {
+			startPos := p.context.GetPos()
+
+			p.context.Next() // $
+			identToken, err := p.context.Expect(token.T_IDENT)
+			if err != nil {
+				return nil, err
+			}
+
+			if p.context.Peek().Type == token.T_EQ {
+				p.context.Next() // =
+
+				expr, err := p.exprParser.ParseExpression()
+				if err != nil {
+					return nil, err
+				}
+
+				initExpr = &ast.AssignExpr{
+					Name: identToken.Value,
+					Expr: expr,
+				}
+			} else {
+				p.context.SetPos(startPos)
+				initExpr, err = p.exprParser.ParseExpression()
+				if err != nil {
+					return nil, fmt.Errorf("error parsing for-loop initializer: %w", err)
+				}
+			}
+		} else {
+			initExpr, err = p.exprParser.ParseExpression()
+			if err != nil {
+				return nil, fmt.Errorf("error parsing for-loop initializer: %w", err)
+			}
 		}
 	}
 

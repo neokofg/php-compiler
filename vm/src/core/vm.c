@@ -96,6 +96,9 @@ VM* vm_new(void) {
     vm_register_opcode_handler(vm, OP_ASSIGN_MOD, handle_assign_mod);
     vm_register_opcode_handler(vm, OP_ASSIGN_CONCAT, handle_assign_concat);
 
+    vm_register_opcode_handler(vm, OP_BREAK, handle_break);
+    vm_register_opcode_handler(vm, OP_CONTINUE, handle_continue);
+
     return vm;
 }
 

@@ -24,6 +24,14 @@ func NewWhileCompiler(context interfaces.CompilationContext, exprCompiler interf
 func (c *WhileCompiler) Compile(stmt *ast.WhileStmt) error {
 	loopStartPos := c.context.GetBytecodeBuilder().CurrentPosition()
 
+	loop := c.context.EnterLoop()
+	defer func() {
+		c.context.ExitLoop()
+	}()
+
+	loop.StartPos = loopStartPos
+	loop.ConditionPos = loopStartPos
+
 	if err := c.exprCompiler.CompileExpr(stmt.Cond); err != nil {
 		return err
 	}
@@ -43,8 +51,12 @@ func (c *WhileCompiler) Compile(stmt *ast.WhileStmt) error {
 	c.context.GetBytecodeBuilder().AppendInt16(int16(jumpBackOffset))
 
 	loopEndPos := c.context.GetBytecodeBuilder().CurrentPosition()
+	loop.EndPos = loopEndPos
+
 	jumpFalseOffset := uint16(loopEndPos - (jumpFalsePos + 3))
 	c.context.GetBytecodeBuilder().PatchUint16(jumpFalsePos+1, jumpFalseOffset)
+
+	c.context.ApplyPendingJumps()
 
 	return nil
 }

@@ -66,3 +66,45 @@ status_t handle_jump_if_false(VMContext* context) {
 
     return STATUS_SUCCESS;
 }
+
+status_t handle_break(VMContext* context) {
+    if (!context || !context->bytecode) {
+        return STATUS_ERROR;
+    }
+
+    int16_t offset = read_int16(context);
+
+    intptr_t current_ip_signed = (intptr_t)context->ip;
+    intptr_t target_ip_signed = current_ip_signed + offset;
+
+    if (target_ip_signed < 0 || (size_t)target_ip_signed >= context->bytecode_len) {
+        context->error_handler->runtime_error("Break jump target out of bounds (ip=%zu, offset=%d, target=%ld)",
+                                             context->ip - 2, offset, target_ip_signed);
+        return STATUS_ERROR;
+    }
+
+    context->ip = (size_t)target_ip_signed;
+
+    return STATUS_SUCCESS;
+}
+
+status_t handle_continue(VMContext* context) {
+    if (!context || !context->bytecode) {
+        return STATUS_ERROR;
+    }
+
+    int16_t offset = read_int16(context);
+
+    intptr_t current_ip_signed = (intptr_t)context->ip;
+    intptr_t target_ip_signed = current_ip_signed + offset;
+
+    if (target_ip_signed < 0 || (size_t)target_ip_signed >= context->bytecode_len) {
+        context->error_handler->runtime_error("Continue jump target out of bounds (ip=%zu, offset=%d, target=%ld)",
+                                             context->ip - 2, offset, target_ip_signed);
+        return STATUS_ERROR;
+    }
+
+    context->ip = (size_t)target_ip_signed;
+
+    return STATUS_SUCCESS;
+}

@@ -53,4 +53,7 @@ const (
 	OP_ASSIGN_DIV    = 0x63
 	OP_ASSIGN_MOD    = 0x64
 	OP_ASSIGN_CONCAT = 0x65
+
+	OP_BREAK    = 0x70
+	OP_CONTINUE = 0x71
 )
