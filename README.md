@@ -28,10 +28,7 @@ Ultimate goal of this project is to be able to compile an entire Laravel applica
 ---
 
 ### 🔄 Phase 2: Expression and control flow extensions (IN PROGRESS)
-- [x] Logical operators: `&&`, `||`
-- [x] Comparison operators: `==`, `>`, `<`
-- [x] Other operators: `.`,`!`,`!=`
-- [x] Boolean types: `true`, `false`
+- [x] All PHP operators
 - [x] `while`, `for`
 - [ ] `switch`, `break`, `continue`
 
