@@ -41,9 +41,9 @@ And maybe — just maybe — make PHP cool again 😎
 | Phase | Status | Highlights |
 |-------|--------|-----------|
 | 🛠 Core Compiler & VM | ✅ Done | Lexing, parsing, bytecode, C-VM |
-| 🔁 Control flow & logic | 🔄 In progress | if/else, loops, logical ops |
-| 🔣 Functions & scopes | 🟡 Soon | user-defined functions, recursion |
-| 📦 Arrays & structures | ⏳ Planned | arrays, foreach, string handling |
+| 🔁 Control flow & logic | ✅ Done | if/else, loops, logical ops |
+| 🔣 Functions & scopes | 🔄 In progress | user-defined functions, recursion |
+| 📦 Arrays & structures | 🟡 Soon | arrays, foreach, string handling |
 | 🧱 OOP | ⏳ Planned | classes, inheritance, magic methods |
 | ⚙️ Runtime features | ⏳ Planned | async, multithreading, autoload |
 | 🎯 Laravel-ready | 🚀 Ultimate goal | run Laravel without PHP installed |

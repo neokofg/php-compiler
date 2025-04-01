@@ -40,6 +40,7 @@ const (
 	T_RPAREN // )
 	T_LBRACE // {
 	T_RBRACE // }
+	T_COLON  // :
 
 	// -- Statements --
 	T_ECHO     // echo
@@ -50,7 +51,10 @@ const (
 	T_BREAK    // break
 	T_CONTINUE // continue
 	T_DO       // do
-	
+	T_SWITCH   // switch
+	T_CASE     // case
+	T_DEFAULT  // default
+
 	// -- Literals --
 	T_TRUE  // true
 	T_FALSE // false

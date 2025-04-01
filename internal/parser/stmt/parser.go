@@ -19,6 +19,7 @@ type Parser struct {
 	forParser     *ForParser
 	blockParser   *BlockParser
 	doWhileParser *DoWhileParser
+	switchParser  *SwitchParser
 }
 
 func NewParser(context interfaces.TokenReader, exprParser interfaces.ExpressionParser) interfaces.StatementParser {
@@ -35,6 +36,7 @@ func NewParser(context interfaces.TokenReader, exprParser interfaces.ExpressionP
 	parser.whileParser = NewWhileParser(context, exprParser, parser.blockParser)
 	parser.forParser = NewForParser(context, exprParser, parser.blockParser)
 	parser.doWhileParser = NewDoWhileParser(context, exprParser, parser.blockParser)
+	parser.switchParser = NewSwitchParser(context, exprParser, parser)
 
 	return parser
 }
@@ -69,6 +71,8 @@ func (p *Parser) ParseStatement() (ast.Stmt, error) {
 		return &ast.ContinueStmt{}, nil
 	case token.T_DO:
 		return p.doWhileParser.Parse()
+	case token.T_SWITCH:
+		return p.switchParser.Parse()
 	default:
 		if peekedToken.Type == token.T_ILLEGAL {
 			return nil, fmt.Errorf("Lexer error in position %d: %s", p.context.GetPos(), peekedToken.Value)

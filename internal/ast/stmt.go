@@ -38,3 +38,13 @@ type DoWhileStmt struct {
 	Body []Stmt
 	Cond Expr
 }
+
+type SwitchStmt struct {
+	Expr  Expr
+	Cases []CaseStmt
+}
+
+type CaseStmt struct {
+	Expr  Expr
+	Stmts []Stmt
+}

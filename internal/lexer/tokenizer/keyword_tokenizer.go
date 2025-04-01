@@ -44,6 +44,12 @@ func (t *KeywordTokenizer) Tokenize(reader interfaces.Reader) token.Token {
 		return token.Token{Type: token.T_CONTINUE, Value: val}
 	case "do":
 		return token.Token{Type: token.T_DO, Value: val}
+	case "switch":
+		return token.Token{Type: token.T_SWITCH, Value: val}
+	case "case":
+		return token.Token{Type: token.T_CASE, Value: val}
+	case "default":
+		return token.Token{Type: token.T_DEFAULT, Value: val}
 	default:
 		return token.Token{Type: token.T_IDENT, Value: val}
 	}
