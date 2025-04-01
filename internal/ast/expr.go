@@ -31,3 +31,19 @@ type UnaryExpr struct {
 type BooleanLiteral struct {
 	Value bool
 }
+
+type PostfixExpr struct {
+	Expr Expr
+	Op   token.TokenType
+}
+
+type PrefixExpr struct {
+	Op   token.TokenType
+	Expr Expr
+}
+
+type CompoundAssignStmt struct {
+	Name string
+	Op   token.TokenType
+	Expr Expr
+}

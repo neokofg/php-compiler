@@ -8,13 +8,14 @@ import (
 )
 
 type stmtCompiler struct {
-	context        interfaces.CompilationContext
-	exprCompiler   interfaces.ExprCompiler
-	assignCompiler *AssignCompiler
-	echoCompiler   *EchoCompiler
-	ifCompiler     *IfCompiler
-	whileCompiler  *WhileCompiler
-	forCompiler    *ForCompiler
+	context                interfaces.CompilationContext
+	exprCompiler           interfaces.ExprCompiler
+	assignCompiler         *AssignCompiler
+	compoundAssignCompiler *CompoundAssignCompiler
+	echoCompiler           *EchoCompiler
+	ifCompiler             *IfCompiler
+	whileCompiler          *WhileCompiler
+	forCompiler            *ForCompiler
 }
 
 func NewCompiler(context interfaces.CompilationContext, exprCompiler interfaces.ExprCompiler) interfaces.StmtCompiler {
@@ -23,11 +24,10 @@ func NewCompiler(context interfaces.CompilationContext, exprCompiler interfaces.
 		exprCompiler: exprCompiler,
 	}
 
-	// Инициализируем отдельные компиляторы для каждого типа утверждений
 	compiler.assignCompiler = NewAssignCompiler(context, exprCompiler)
+	compiler.compoundAssignCompiler = NewCompoundAssignCompiler(context, exprCompiler)
 	compiler.echoCompiler = NewEchoCompiler(context, exprCompiler)
 
-	// Эти компиляторы требуют циклической ссылки на сам stmtCompiler
 	compiler.ifCompiler = NewIfCompiler(context, exprCompiler, compiler)
 	compiler.whileCompiler = NewWhileCompiler(context, exprCompiler, compiler)
 	compiler.forCompiler = NewForCompiler(context, exprCompiler, compiler)
@@ -39,6 +39,8 @@ func (c *stmtCompiler) CompileStmt(stmt ast.Stmt) error {
 	switch s := stmt.(type) {
 	case *ast.AssignStmt:
 		return c.assignCompiler.Compile(s)
+	case *ast.CompoundAssignStmt:
+		return c.compoundAssignCompiler.Compile(s)
 	case *ast.EchoStmt:
 		return c.echoCompiler.Compile(s)
 	case *ast.IfStmt:
@@ -47,6 +49,10 @@ func (c *stmtCompiler) CompileStmt(stmt ast.Stmt) error {
 		return c.whileCompiler.Compile(s)
 	case *ast.ForStmt:
 		return c.forCompiler.Compile(s)
+	case *ast.PostfixExpr:
+		return c.exprCompiler.CompileExpr(s)
+	case *ast.PrefixExpr:
+		return c.exprCompiler.CompileExpr(s)
 	default:
 		return fmt.Errorf("unsupported statement type: %T", stmt)
 	}

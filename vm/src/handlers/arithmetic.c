@@ -101,3 +101,98 @@ status_t handle_div(VMContext* context) {
 
     return STATUS_SUCCESS;
 }
+
+status_t handle_inc(VMContext* context) {
+    if (!context || !context->stack_manager) {
+        return STATUS_ERROR;
+    }
+
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in INC at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
+    }
+
+    Value val = context->stack_manager->pop();
+    int_t int_val = context->value_handler->to_int(val);
+    int_val++;
+
+    context->stack_manager->push(context->value_handler->create_int(int_val));
+    return STATUS_SUCCESS;
+}
+
+status_t handle_dec(VMContext* context) {
+    if (!context || !context->stack_manager) {
+        return STATUS_ERROR;
+    }
+
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in DEC at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
+    }
+
+    Value val = context->stack_manager->pop();
+    int_t int_val = context->value_handler->to_int(val);
+    int_val--;
+
+    context->stack_manager->push(context->value_handler->create_int(int_val));
+    return STATUS_SUCCESS;
+}
+
+status_t handle_post_inc(VMContext* context) {
+    if (!context || !context->stack_manager) {
+        return STATUS_ERROR;
+    }
+
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in POST_INC at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
+    }
+
+    Value val = context->stack_manager->pop();
+    int_t int_val = context->value_handler->to_int(val);
+
+    context->stack_manager->push(context->value_handler->create_int(int_val));
+    context->stack_manager->push(context->value_handler->create_int(int_val + 1));
+    return STATUS_SUCCESS;
+}
+
+status_t handle_post_dec(VMContext* context) {
+    if (!context || !context->stack_manager) {
+        return STATUS_ERROR;
+    }
+
+    if (context->stack_manager->is_empty()) {
+        context->error_handler->runtime_error("Stack underflow in POST_DEC at ip=%zu", context->ip - 1);
+        return STATUS_STACK_UNDERFLOW;
+    }
+
+    Value val = context->stack_manager->pop();
+    int_t int_val = context->value_handler->to_int(val);
+
+    context->stack_manager->push(context->value_handler->create_int(int_val));
+    context->stack_manager->push(context->value_handler->create_int(int_val - 1));
+    return STATUS_SUCCESS;
+}
+
+status_t handle_mod(VMContext* context) {
+    status_t status = check_stack_size(context, 2);
+    if (status != STATUS_SUCCESS) {
+        return status;
+    }
+
+    Value b = context->stack_manager->pop();
+    Value a = context->stack_manager->pop();
+
+    int_t a_int = context->value_handler->to_int(a);
+    int_t b_int = context->value_handler->to_int(b);
+
+    if (b_int == 0) {
+        context->error_handler->warning("Modulo by zero at ip=%zu", context->ip - 1);
+        context->stack_manager->push(context->value_handler->create_int(0));
+        return STATUS_DIVISION_BY_ZERO;
+    }
+
+    int_t result = a_int % b_int;
+    context->stack_manager->push(context->value_handler->create_int(result));
+    return STATUS_SUCCESS;
+}

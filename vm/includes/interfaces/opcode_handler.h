@@ -70,4 +70,31 @@ status_t handle_not(VMContext* context);
 status_t handle_and(VMContext* context);
 status_t handle_or(VMContext* context);
 
+status_t handle_inc(VMContext* context);
+status_t handle_dec(VMContext* context);
+status_t handle_post_inc(VMContext* context);
+status_t handle_post_dec(VMContext* context);
+
+status_t handle_mod(VMContext* context);
+
+status_t handle_gte(VMContext* context);
+status_t handle_lte(VMContext* context);
+status_t handle_identity_eq(VMContext* context);
+status_t handle_identity_ne(VMContext* context);
+
+status_t handle_bit_and(VMContext* context);
+status_t handle_bit_or(VMContext* context);
+status_t handle_bit_xor(VMContext* context);
+status_t handle_bit_not(VMContext* context);
+
+status_t handle_lshift(VMContext* context);
+status_t handle_rshift(VMContext* context);
+
+status_t handle_assign_add(VMContext* context);
+status_t handle_assign_sub(VMContext* context);
+status_t handle_assign_mul(VMContext* context);
+status_t handle_assign_div(VMContext* context);
+status_t handle_assign_mod(VMContext* context);
+status_t handle_assign_concat(VMContext* context);
+
 #endif /* VM_OPCODE_HANDLER_H */

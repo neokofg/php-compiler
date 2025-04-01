@@ -69,6 +69,33 @@ VM* vm_new(void) {
     vm_register_opcode_handler(vm, OP_AND, handle_and);
     vm_register_opcode_handler(vm, OP_OR, handle_or);
 
+    vm_register_opcode_handler(vm, OP_INC, handle_inc);
+    vm_register_opcode_handler(vm, OP_DEC, handle_dec);
+    vm_register_opcode_handler(vm, OP_POST_INC, handle_post_inc);
+    vm_register_opcode_handler(vm, OP_POST_DEC, handle_post_dec);
+
+    vm_register_opcode_handler(vm, OP_MOD, handle_mod);
+
+    vm_register_opcode_handler(vm, OP_GTE, handle_gte);
+    vm_register_opcode_handler(vm, OP_LTE, handle_lte);
+    vm_register_opcode_handler(vm, OP_IDENTITY_EQ, handle_identity_eq);
+    vm_register_opcode_handler(vm, OP_IDENTITY_NE, handle_identity_ne);
+
+    vm_register_opcode_handler(vm, OP_BIT_AND, handle_bit_and);
+    vm_register_opcode_handler(vm, OP_BIT_OR, handle_bit_or);
+    vm_register_opcode_handler(vm, OP_BIT_XOR, handle_bit_xor);
+    vm_register_opcode_handler(vm, OP_BIT_NOT, handle_bit_not);
+
+    vm_register_opcode_handler(vm, OP_LSHIFT, handle_lshift);
+    vm_register_opcode_handler(vm, OP_RSHIFT, handle_rshift);
+
+    vm_register_opcode_handler(vm, OP_ASSIGN_ADD, handle_assign_add);
+    vm_register_opcode_handler(vm, OP_ASSIGN_SUB, handle_assign_sub);
+    vm_register_opcode_handler(vm, OP_ASSIGN_MUL, handle_assign_mul);
+    vm_register_opcode_handler(vm, OP_ASSIGN_DIV, handle_assign_div);
+    vm_register_opcode_handler(vm, OP_ASSIGN_MOD, handle_assign_mod);
+    vm_register_opcode_handler(vm, OP_ASSIGN_CONCAT, handle_assign_concat);
+
     return vm;
 }
 

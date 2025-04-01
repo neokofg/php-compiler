@@ -65,6 +65,32 @@ static void init_opcode_names(void) {
 
     impl.opcode_names[OP_AND] = "AND";
     impl.opcode_names[OP_OR] = "OR";
+
+    impl.opcode_names[OP_INC] = "INC";
+    impl.opcode_names[OP_DEC] = "DEC";
+    impl.opcode_names[OP_POST_INC] = "POST_INC";
+    impl.opcode_names[OP_POST_DEC] = "POST_DEC";
+
+    impl.opcode_names[OP_MOD] = "MOD";
+
+    impl.opcode_names[OP_GTE] = "GTE";
+    impl.opcode_names[OP_LTE] = "LTE";
+    impl.opcode_names[OP_IDENTITY_EQ] = "IDENTITY_EQ";
+    impl.opcode_names[OP_IDENTITY_NE] = "IDENTITY_NE";
+
+    impl.opcode_names[OP_BIT_AND] = "BIT_AND";
+    impl.opcode_names[OP_BIT_OR] = "BIT_OR";
+    impl.opcode_names[OP_BIT_XOR] = "BIT_XOR";
+    impl.opcode_names[OP_BIT_NOT] = "BIT_NOT";
+    impl.opcode_names[OP_LSHIFT] = "LSHIFT";
+    impl.opcode_names[OP_RSHIFT] = "RSHIFT";
+
+    impl.opcode_names[OP_ASSIGN_ADD] = "ASSIGN_ADD";
+    impl.opcode_names[OP_ASSIGN_SUB] = "ASSIGN_SUB";
+    impl.opcode_names[OP_ASSIGN_MUL] = "ASSIGN_MUL";
+    impl.opcode_names[OP_ASSIGN_DIV] = "ASSIGN_DIV";
+    impl.opcode_names[OP_ASSIGN_MOD] = "ASSIGN_MOD";
+    impl.opcode_names[OP_ASSIGN_CONCAT] = "ASSIGN_CONCAT";
 }
 
 OpcodeHandler* opcode_handler_new(void) {

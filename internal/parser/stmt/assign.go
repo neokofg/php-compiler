@@ -2,6 +2,7 @@
 package stmt
 
 import (
+	"fmt"
 	"github.com/neokofg/php-compiler/internal/ast"
 	"github.com/neokofg/php-compiler/internal/parser/interfaces"
 	"github.com/neokofg/php-compiler/internal/token"
@@ -26,20 +27,50 @@ func (p *AssignParser) Parse() (ast.Stmt, error) {
 		return nil, err
 	}
 
-	_, err = p.context.Expect(token.T_EQ)
-	if err != nil {
-		return nil, err
-	}
+	next := p.context.Peek().Type
+	switch next {
+	case token.T_EQ:
+		p.context.Next() // =
+		expr, err := p.exprParser.ParseExpression()
+		if err != nil {
+			return nil, err
+		}
 
-	expr, err := p.exprParser.ParseExpression()
-	if err != nil {
-		return nil, err
-	}
+		_, err = p.context.Expect(token.T_SEMI)
+		if err != nil {
+			return nil, err
+		}
 
-	_, err = p.context.Expect(token.T_SEMI)
-	if err != nil {
-		return nil, err
-	}
+		return &ast.AssignStmt{Name: identToken.Value, Expr: expr}, nil
 
-	return &ast.AssignStmt{Name: identToken.Value, Expr: expr}, nil
+	case token.T_PLUS_EQ, token.T_MINUS_EQ, token.T_MUL_EQ, token.T_DIV_EQ, token.T_MOD_EQ, token.T_DOT_EQ:
+		op := p.context.Next().Type
+		expr, err := p.exprParser.ParseExpression()
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = p.context.Expect(token.T_SEMI)
+		if err != nil {
+			return nil, err
+		}
+
+		return &ast.CompoundAssignStmt{Name: identToken.Value, Op: op, Expr: expr}, nil
+
+	case token.T_INC, token.T_DEC:
+		op := p.context.Next().Type
+
+		_, err = p.context.Expect(token.T_SEMI)
+		if err != nil {
+			return nil, err
+		}
+
+		return &ast.PostfixExpr{
+			Expr: &ast.VarExpr{Name: identToken.Value},
+			Op:   op,
+		}, nil
+
+	default:
+		return nil, fmt.Errorf("Position %d: expected assignment operator after variable", p.context.GetPos())
+	}
 }

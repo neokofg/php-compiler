@@ -20,14 +20,18 @@ const (
 	T_SLASH // /
 
 	// -- Logical --
-	T_EQ    // =
-	T_EQEQ  // ==
-	T_GT    // >
-	T_LT    // <
-	T_AND   // &&
-	T_OR    // ||
-	T_NOT   // !
-	T_NOTEQ // !=
+	T_EQ      // =
+	T_EQEQ    // ==
+	T_GT      // >
+	T_LT      // <
+	T_AND     // &&
+	T_OR      // ||
+	T_NOT     // !
+	T_NOTEQ   // !=
+	T_GTE     // >=
+	T_LTE     // <=
+	T_EQEQEQ  // ===
+	T_NOTEQEQ // !==
 
 	// -- Separators --
 	T_SEMI   // ;
@@ -50,4 +54,27 @@ const (
 
 	// -- Binary Operators --
 	T_DOT // .
+
+	// -- Unary operators --
+	T_INC // ++
+	T_DEC // --
+
+	// -- Compound assignment operators ---
+	T_PLUS_EQ  // +=
+	T_MINUS_EQ // -=
+	T_MUL_EQ   // *=
+	T_DIV_EQ   // /=
+	T_MOD_EQ   // %=
+	T_DOT_EQ   // .=
+
+	// -- Bitwise operators --
+	T_BIT_AND // &
+	T_BIT_OR  // |
+	T_BIT_XOR // ^
+	T_BIT_NOT // ~
+	T_LSHIFT  // <<
+	T_RSHIFT  // >>
+
+	// -- Modulo --
+	T_MOD // %
 )

@@ -13,6 +13,8 @@ type exprCompiler struct {
 	stringCompiler  *StringCompiler
 	booleanCompiler *BooleanCompiler
 	varCompiler     *VarCompiler
+	postfixCompiler *PostfixCompiler
+	prefixCompiler  *PrefixCompiler
 	binaryCompiler  *BinaryCompiler
 	unaryCompiler   *UnaryCompiler
 }
@@ -26,6 +28,8 @@ func NewCompiler(context interfaces.CompilationContext) interfaces.ExprCompiler 
 	compiler.stringCompiler = NewStringCompiler(context)
 	compiler.booleanCompiler = NewBooleanCompiler(context)
 	compiler.varCompiler = NewVarCompiler(context)
+	compiler.postfixCompiler = NewPostfixCompiler(context)
+	compiler.prefixCompiler = NewPrefixCompiler(context)
 
 	compiler.unaryCompiler = NewUnaryCompiler(context, compiler)
 	compiler.binaryCompiler = NewBinaryCompiler(context, compiler)
@@ -47,6 +51,10 @@ func (c *exprCompiler) CompileExpr(expr ast.Expr) error {
 		return c.unaryCompiler.Compile(e)
 	case *ast.BinaryExpr:
 		return c.binaryCompiler.Compile(e)
+	case *ast.PostfixExpr:
+		return c.postfixCompiler.Compile(e)
+	case *ast.PrefixExpr:
+		return c.prefixCompiler.Compile(e)
 	default:
 		return fmt.Errorf("unsupported expression type: %T", expr)
 	}
