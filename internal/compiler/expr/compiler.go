@@ -9,15 +9,16 @@ import (
 )
 
 type exprCompiler struct {
-	context         interfaces.CompilationContext
-	numberCompiler  *NumberCompiler
-	stringCompiler  *StringCompiler
-	booleanCompiler *BooleanCompiler
-	varCompiler     *VarCompiler
-	postfixCompiler *PostfixCompiler
-	prefixCompiler  *PrefixCompiler
-	binaryCompiler  *BinaryCompiler
-	unaryCompiler   *UnaryCompiler
+	context              interfaces.CompilationContext
+	numberCompiler       *NumberCompiler
+	stringCompiler       *StringCompiler
+	booleanCompiler      *BooleanCompiler
+	varCompiler          *VarCompiler
+	postfixCompiler      *PostfixCompiler
+	prefixCompiler       *PrefixCompiler
+	binaryCompiler       *BinaryCompiler
+	unaryCompiler        *UnaryCompiler
+	functionCallCompiler *FunctionCallCompiler
 }
 
 func NewCompiler(context interfaces.CompilationContext) interfaces.ExprCompiler {
@@ -34,6 +35,7 @@ func NewCompiler(context interfaces.CompilationContext) interfaces.ExprCompiler 
 
 	compiler.unaryCompiler = NewUnaryCompiler(context, compiler)
 	compiler.binaryCompiler = NewBinaryCompiler(context, compiler)
+	compiler.functionCallCompiler = NewFunctionCallCompiler(context, compiler)
 
 	return compiler
 }
@@ -56,6 +58,8 @@ func (c *exprCompiler) CompileExpr(expr ast.Expr) error {
 		return c.postfixCompiler.Compile(e)
 	case *ast.PrefixExpr:
 		return c.prefixCompiler.Compile(e)
+	case *ast.FunctionCall:
+		return c.functionCallCompiler.Compile(e)
 	case *ast.AssignExpr:
 		return c.compileAssignExpr(e)
 	default:

@@ -243,6 +243,7 @@ func compileAndRunVM(tmpFile string, outFile string) error {
 		vmDir+"/src/handlers/flow.c",
 		vmDir+"/src/handlers/logic.c",
 		vmDir+"/src/handlers/string.c",
+		vmDir+"/src/handlers/function.c",
 		vmDir+"/src/components/value.c",
 		vmDir+"/src/components/memory.c",
 		vmDir+"/src/components/stack.c",

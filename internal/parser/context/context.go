@@ -33,6 +33,13 @@ func (c *ParserContext) Peek() token.Token {
 	return c.tokens[c.pos]
 }
 
+func (c *ParserContext) PeekNext() token.Token {
+	if c.pos >= len(c.tokens) {
+		return token.Token{Type: token.T_EOF, Value: ""}
+	}
+	return c.tokens[c.pos+1]
+}
+
 func (c *ParserContext) Next() token.Token {
 	peekedToken := c.Peek()
 	if peekedToken.Type != token.T_EOF {

@@ -41,6 +41,7 @@ const (
 	T_LBRACE // {
 	T_RBRACE // }
 	T_COLON  // :
+	T_COMMA  // ,
 
 	// -- Statements --
 	T_ECHO     // echo
@@ -54,6 +55,8 @@ const (
 	T_SWITCH   // switch
 	T_CASE     // case
 	T_DEFAULT  // default
+	T_FUNCTION // function
+	T_RETURN   // return
 
 	// -- Literals --
 	T_TRUE  // true

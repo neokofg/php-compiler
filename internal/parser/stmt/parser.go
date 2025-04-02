@@ -12,14 +12,17 @@ type Parser struct {
 	context    interfaces.TokenReader
 	exprParser interfaces.ExpressionParser
 
-	assignParser  *AssignParser
-	echoParser    *EchoParser
-	ifParser      *IfParser
-	whileParser   *WhileParser
-	forParser     *ForParser
-	blockParser   *BlockParser
-	doWhileParser *DoWhileParser
-	switchParser  *SwitchParser
+	assignParser       *AssignParser
+	echoParser         *EchoParser
+	ifParser           *IfParser
+	whileParser        *WhileParser
+	forParser          *ForParser
+	blockParser        *BlockParser
+	doWhileParser      *DoWhileParser
+	switchParser       *SwitchParser
+	functionParser     *FunctionParser
+	returnParser       *ReturnParser
+	functionCallParser *FunctionCallParser
 }
 
 func NewParser(context interfaces.TokenReader, exprParser interfaces.ExpressionParser) interfaces.StatementParser {
@@ -37,6 +40,9 @@ func NewParser(context interfaces.TokenReader, exprParser interfaces.ExpressionP
 	parser.forParser = NewForParser(context, exprParser, parser.blockParser)
 	parser.doWhileParser = NewDoWhileParser(context, exprParser, parser.blockParser)
 	parser.switchParser = NewSwitchParser(context, exprParser, parser)
+	parser.functionParser = NewFunctionParser(context, exprParser, parser.blockParser)
+	parser.returnParser = NewReturnParser(context, exprParser)
+	parser.functionCallParser = NewFunctionCallParser(context, exprParser)
 
 	return parser
 }
@@ -73,6 +79,15 @@ func (p *Parser) ParseStatement() (ast.Stmt, error) {
 		return p.doWhileParser.Parse()
 	case token.T_SWITCH:
 		return p.switchParser.Parse()
+	case token.T_FUNCTION:
+		return p.functionParser.Parse()
+	case token.T_RETURN:
+		return p.returnParser.Parse()
+	case token.T_IDENT:
+		if p.context.PeekNext().Type == token.T_LPAREN {
+			return p.functionCallParser.Parse()
+		}
+		return nil, fmt.Errorf("Position %d: unexpected identifier: %s", p.context.GetPos(), peekedToken.Value)
 	default:
 		if peekedToken.Type == token.T_ILLEGAL {
 			return nil, fmt.Errorf("Lexer error in position %d: %s", p.context.GetPos(), peekedToken.Value)

@@ -56,4 +56,10 @@ const (
 
 	OP_BREAK    = 0x70
 	OP_CONTINUE = 0x71
+
+	OP_FUNC_DECL  = 0x80
+	OP_FUNC_CALL  = 0x81
+	OP_RETURN     = 0x82
+	OP_ENTER_FUNC = 0x83
+	OP_EXIT_FUNC  = 0x84
 )

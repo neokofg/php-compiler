@@ -9,6 +9,7 @@ import (
 type TokenReader interface {
 	Next() token.Token
 	Peek() token.Token
+	PeekNext() token.Token
 	Expect(t token.TokenType) (token.Token, error)
 	GetPos() int
 	SetPos(int)

@@ -1,31 +1,27 @@
 <?php
-// This is test for php one-line comments ignoring
-/*
-* This is the test for php multi-line comments ignoring
-*/
-$var = 3;
-// for ($i = 0;$i < 5;$i++) {
-//     echo $i . "\n";
-//     if ($i == 3) {
-//         continue;
-//     }
-// }
-// --
-// while(true) {
-//     echo $var++;
-//     if ($var == 5) {
-//         break;
-//     }
-// }
-// --
-switch ($var) {
-    case 1:
-        echo "its 1\n";
-        break;
-    case 2:
-        echo "its 2\n";
-        break;
-    default:
-        echo "its something odd\n";
+function fibonacciWithOverflow($n) {
+    $max_int = 2147483647;
+    $prev = 0;
+    $current = 1;
+    $i = 2;
+
+    if ($n <= 1) {
+        return $n;
+    }
+
+    while ($i <= $n) {
+        $temp = $prev + $current;
+        if ($temp < $prev || $temp > $max_int) {
+            return "Переполнение";
+        }
+        $prev = $current;
+        $current = $temp;
+        $i = $i + 1;
+    }
+
+    return $current;
 }
-echo "its here!" . "\n";
+
+$number = 10;
+$result = fibonacciWithOverflow($number);
+echo "Fibonacci(" . $number . ") = " . $result . "\n";

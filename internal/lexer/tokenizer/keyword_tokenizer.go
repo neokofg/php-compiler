@@ -50,6 +50,10 @@ func (t *KeywordTokenizer) Tokenize(reader interfaces.Reader) token.Token {
 		return token.Token{Type: token.T_CASE, Value: val}
 	case "default":
 		return token.Token{Type: token.T_DEFAULT, Value: val}
+	case "function":
+		return token.Token{Type: token.T_FUNCTION, Value: val}
+	case "return":
+		return token.Token{Type: token.T_RETURN, Value: val}
 	default:
 		return token.Token{Type: token.T_IDENT, Value: val}
 	}

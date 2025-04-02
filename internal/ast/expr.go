@@ -52,3 +52,8 @@ type AssignExpr struct {
 	Name string
 	Expr Expr
 }
+
+type FunctionCall struct {
+	Name string
+	Args []Expr
+}

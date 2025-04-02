@@ -31,6 +31,8 @@ func NewParser(context interfaces.TokenReader) interfaces.ExpressionParser {
 	parser.andParser = NewAndParser(context, parser.comparisonParser)
 	parser.orParser = NewOrParser(context, parser.andParser)
 
+	parser.primaryParser.SetExprParser(parser)
+
 	return parser
 }
 

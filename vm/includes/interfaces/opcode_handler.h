@@ -100,4 +100,10 @@ status_t handle_assign_concat(VMContext* context);
 status_t handle_break(VMContext* context);
 status_t handle_continue(VMContext* context);
 
+status_t handle_func_decl(VMContext* context);
+status_t handle_func_call(VMContext* context);
+status_t handle_return(VMContext* context);
+status_t handle_enter_func(VMContext* context);
+status_t handle_exit_func(VMContext* context);
+
 #endif /* VM_OPCODE_HANDLER_H */

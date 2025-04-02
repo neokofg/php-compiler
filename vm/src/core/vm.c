@@ -99,6 +99,12 @@ VM* vm_new(void) {
     vm_register_opcode_handler(vm, OP_BREAK, handle_break);
     vm_register_opcode_handler(vm, OP_CONTINUE, handle_continue);
 
+    vm_register_opcode_handler(vm, OP_FUNC_DECL, handle_func_decl);
+    vm_register_opcode_handler(vm, OP_FUNC_CALL, handle_func_call);
+    vm_register_opcode_handler(vm, OP_RETURN, handle_return);
+    vm_register_opcode_handler(vm, OP_ENTER_FUNC, handle_enter_func);
+    vm_register_opcode_handler(vm, OP_EXIT_FUNC, handle_exit_func);
+
     return vm;
 }
 
@@ -127,8 +133,23 @@ status_t vm_execute(VM* vm, byte_t* bytecode, size_t bytecode_len, Value* consta
     vm->running = true;
     vm->last_status = STATUS_SUCCESS;
 
+    bool* debug_ptr = &vm->debug_mode;
+    vm_context_set_user_data(vm->context, debug_ptr);
+
     while (vm->running && vm->context->ip < vm->context->bytecode_len) {
+        if (vm->debug_mode) {
+            printf("DEBUG VM: About to execute instruction at ip=%zu\n", vm->context->ip);
+            if (vm->context->ip < vm->context->bytecode_len) {
+                printf("DEBUG VM: Opcode: 0x%02X\n", vm->context->bytecode[vm->context->ip]);
+            }
+        }
+
         status_t status = vm_execute_instruction(vm);
+
+        if (vm->debug_mode) {
+            printf("DEBUG VM: After execution, ip=%zu, status=%d\n", vm->context->ip, status);
+        }
+
         if (status != STATUS_SUCCESS) {
             vm->last_status = status;
             vm->running = false;

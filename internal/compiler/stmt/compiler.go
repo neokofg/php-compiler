@@ -9,16 +9,19 @@ import (
 )
 
 type stmtCompiler struct {
-	context                interfaces.CompilationContext
-	exprCompiler           interfaces.ExprCompiler
-	assignCompiler         *AssignCompiler
-	compoundAssignCompiler *CompoundAssignCompiler
-	echoCompiler           *EchoCompiler
-	ifCompiler             *IfCompiler
-	whileCompiler          *WhileCompiler
-	forCompiler            *ForCompiler
-	doWhileCompiler        *DoWhileCompiler
-	switchCompiler         *SwitchCompiler
+	context                  interfaces.CompilationContext
+	exprCompiler             interfaces.ExprCompiler
+	assignCompiler           *AssignCompiler
+	compoundAssignCompiler   *CompoundAssignCompiler
+	echoCompiler             *EchoCompiler
+	ifCompiler               *IfCompiler
+	whileCompiler            *WhileCompiler
+	forCompiler              *ForCompiler
+	doWhileCompiler          *DoWhileCompiler
+	switchCompiler           *SwitchCompiler
+	functionCompiler         *FunctionCompiler
+	returnCompiler           *ReturnCompiler
+	functionCallStmtCompiler *FunctionCallStmtCompiler
 }
 
 func NewCompiler(context interfaces.CompilationContext, exprCompiler interfaces.ExprCompiler) interfaces.StmtCompiler {
@@ -36,6 +39,9 @@ func NewCompiler(context interfaces.CompilationContext, exprCompiler interfaces.
 	compiler.forCompiler = NewForCompiler(context, exprCompiler, compiler)
 	compiler.doWhileCompiler = NewDoWhileCompiler(context, exprCompiler, compiler)
 	compiler.switchCompiler = NewSwitchCompiler(context, exprCompiler, compiler)
+	compiler.functionCompiler = NewFunctionCompiler(context, compiler)
+	compiler.returnCompiler = NewReturnCompiler(context, exprCompiler)
+	compiler.functionCallStmtCompiler = NewFunctionCallStmtCompiler(context, exprCompiler)
 
 	return compiler
 }
@@ -58,6 +64,10 @@ func (c *stmtCompiler) CompileStmt(stmt ast.Stmt) error {
 		return c.doWhileCompiler.Compile(s)
 	case *ast.SwitchStmt:
 		return c.switchCompiler.Compile(s)
+	case *ast.FunctionDecl:
+		return c.functionCompiler.Compile(s)
+	case *ast.ReturnStmt:
+		return c.returnCompiler.Compile(s)
 	case *ast.PostfixExpr:
 		return c.exprCompiler.CompileExpr(s)
 	case *ast.PrefixExpr:
@@ -66,6 +76,8 @@ func (c *stmtCompiler) CompileStmt(stmt ast.Stmt) error {
 		return c.compileBreak()
 	case *ast.ContinueStmt:
 		return c.compileContinue()
+	case *ast.FunctionCallStmt:
+		return c.functionCallStmtCompiler.Compile(s)
 	default:
 		return fmt.Errorf("unsupported statement type: %T", stmt)
 	}

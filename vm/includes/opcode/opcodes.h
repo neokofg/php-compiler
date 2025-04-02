@@ -57,4 +57,10 @@
 #define OP_BREAK            0x70
 #define OP_CONTINUE         0x71
 
+#define OP_FUNC_DECL      0x80
+#define OP_FUNC_CALL      0x81
+#define OP_RETURN         0x82
+#define OP_ENTER_FUNC     0x83
+#define OP_EXIT_FUNC      0x84
+
 #endif /* VM_OPCODES_H */

@@ -48,3 +48,18 @@ type CaseStmt struct {
 	Expr  Expr
 	Stmts []Stmt
 }
+
+type FunctionDecl struct {
+	Name      string
+	Params    []string
+	Body      []Stmt
+	StartAddr int
+}
+
+type ReturnStmt struct {
+	Expr Expr
+}
+
+type FunctionCallStmt struct {
+	Call *FunctionCall
+}

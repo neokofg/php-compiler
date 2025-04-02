@@ -5,6 +5,7 @@ import (
 	"github.com/neokofg/php-compiler/internal/ast"
 	"github.com/neokofg/php-compiler/internal/compiler/bytecode"
 	"github.com/neokofg/php-compiler/internal/compiler/constant"
+	"github.com/neokofg/php-compiler/internal/compiler/function"
 	"github.com/neokofg/php-compiler/internal/compiler/variable"
 )
 
@@ -27,6 +28,8 @@ type CompilationContext interface {
 
 	AddPendingJump(position int, isBreak bool)
 	ApplyPendingJumps()
+
+	GetFunctionManager() *function.Manager
 }
 
 type JumpPatch struct {
@@ -47,6 +50,7 @@ type Context struct {
 	ConstantPool    *constant.Pool
 	VariableManager *variable.Manager
 	CurrentLoop     *LoopContext
+	FunctionManager *function.Manager
 }
 
 func NewContext() *Context {
@@ -55,6 +59,7 @@ func NewContext() *Context {
 		ConstantPool:    constant.NewPool(),
 		VariableManager: variable.NewManager(),
 		CurrentLoop:     nil,
+		FunctionManager: function.NewManager(),
 	}
 }
 
@@ -72,6 +77,10 @@ func (c *Context) GetVariableManager() *variable.Manager {
 
 func (c *Context) GetCurrentLoop() *LoopContext {
 	return c.CurrentLoop
+}
+
+func (c *Context) GetFunctionManager() *function.Manager {
+	return c.FunctionManager
 }
 
 func (c *Context) EnterLoop() *LoopContext {
